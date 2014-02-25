@@ -3,8 +3,9 @@
     "labels" :
     [
         {
-          "label" : "occlusion",
-          "unique" : false,
+          "name" : "occlusion",
+          "is_unique" : false,
+          "is_global" : false,
           "features" :
           [
               {
@@ -17,7 +18,6 @@
                   "type" : "choice",
                   "values" : ["hand", "lens", "unknown"],
                   "default" : "unknown"
-                  
               },
               {
                   "name" : "description",
@@ -28,14 +28,29 @@
         },
         
         {
-          "label" : "focus",
-          "unique" : true,
+          "name" : "focus",
+          "is_unique" : true,
+          "is_global" : false,
           "features" :
           [
               {
                   "name" : "value",
                   "type" : "bool",
-                  "default" : true
+                  "default" : false
+              }
+          ]
+        },
+
+        {
+          "name" : "patient",
+          "is_unique" : true,
+          "is_global" : true,
+          "features" :
+          [
+              {
+                  "name" : "id",
+                  "type" : "int",
+                  "default" : 0
               }
           ]
         }
