@@ -118,21 +118,60 @@ class annotation:
 
 class annotation_manager:
     
-    def __init__(self, domain_filename=None, instance_filename=None):
+    def __init__(self, domain_filename=None):
         self.domain = {}
         self.labels = []
-        self.name = ""
+        self.domain_name = ""
+        self.domain_filename = ""
+        self.instance_name = ""
+        self.instance_filename = ""
+        self.itype = None
         
         if domain_filename is not None:
-            f = open(domain_filename).read()
-            d = json.loads(f)
-            self.name = d["name"]
-            for l in d["labels"]:
-                self.domain[l["name"]] = annotation(l)
-            
-            for l in self.domain:
-                print self.domain[l]
-                print
+            self.parse_domain(domain_filename)
+
+    def parse_domain(self, domain_filename):
+
+        f = open(domain_filename).read()
+        d = json.loads(f)
+
+        self.domain = {}
+        self.labels = []
+        self.domain_name = d["name"]
+        self.domain_filename = domain_filename
+        
+        for l in d["labels"]:
+            self.domain[l["name"]] = annotation(l)
+    
+    def parse_instance(self, instance_filename):
+        self.labels = []
+        
+        f = open(instance_filename).read()
+        i = json.loads(f)
+        
+        if self.domain_filename != i["domain"]:
+            return
+        self.instance_name = i["name"]
+        self.itype = i["type"]
+        self.instance_filename = i["filename"]
+        self.sequence = []
+        
+        # TODO parse the sequence of attributes
+        pass
+
+    def domain_to_json(self):
+        return { "name" : self.domain_name,
+                 "labels" : map(lambda x : self.domain[x].to_json(),
+                                self.domain)
+               }
+    
+    def instance_to_json(self):
+        return { "domain" : self.domain_filename,
+                 "name" : self.instance_name,
+                 "type" : self.itype,
+                 "filename" : self.instance_filename,
+                 "sequence" : map(lambda x : x.to_json(), self.sequence)
+               }
     
     def add_label(s):
         self.domain[s.name] = s

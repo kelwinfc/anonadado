@@ -24,7 +24,13 @@ if len(sys.argv) > 1:
 if len(sys.argv) > 2:
     instance_filename = sys.argv[2]
 
-am = annotation_manager(domain_filename, instance_filename)
+am = annotation_manager()
+am.parse_domain(domain_filename)
+am.parse_instance(instance_filename)
+
+print am.domain_to_json()
+print
+print am.instance_to_json()
 
 #cap = cv2.VideoCapture('test/0.mpg')
 
