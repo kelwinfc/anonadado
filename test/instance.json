@@ -1,0 +1,67 @@
+{
+    "domain" : "test/domain.json",
+    "name": "dummy",
+    "sequence" :
+    [
+        {
+            "img" : "test/dummy/img0.png",
+            "labels" :
+            [
+            ]
+        },
+        {
+            "img" : "test/dummy/img1.png",
+            "labels" :
+            [
+                {
+                    "id": 1,
+                    "name" : "oclussion",
+                    "features" : [
+                        {"name" : "value", "value": true},
+                        {"name" : "object", "value": "lens"},
+                        {"name" : "description", "value": "Lorem ipsum"}
+                    ]
+                }
+            ]
+        },
+        {
+            "img" : "test/dummy/img2.png",
+            "labels" : []
+        },
+        {
+            "img" : "test/dummy/img3.png",
+            "labels" : []
+        },
+        {
+            "img" : "test/dummy/img4.png",
+            "labels" :
+            [
+                {
+                    "id": 1,
+                    "name" : "oclussion",
+                    "features" : [
+                        {"name" : "value", "value": true},
+                        {"name" : "object", "value": "lens"},
+                        {"name" : "description", "value": ""}
+                    ]
+                },
+                {
+                    "id": 2,
+                    "name" : "focus",
+                    "features" : [
+                        {"name" : "value", "value": true},
+                    ]
+                },
+                {
+                    "id": 3,
+                    "name" : "oclussion",
+                    "features" : [
+                        {"name" : "value", "value": true},
+                        {"name" : "object", "value": "hand"},
+                        {"name" : "description", "value": "Doctor's hand"}
+                    ]
+                }
+            ]
+        },
+    ]
+}

@@ -1,0 +1,43 @@
+{
+    "name": "test",
+    "labels" :
+    [
+        {
+          "label" : "occlusion",
+          "unique" : false,
+          "features" :
+          [
+              {
+                  "name" : "value",
+                  "type" : "bool",
+                  "default" : true
+              },
+              {
+                  "name" : "object",
+                  "type" : "choice",
+                  "values" : ["hand", "lens", "unknown"],
+                  "default" : "unknown"
+                  
+              },
+              {
+                  "name" : "description",
+                  "type" : "string",
+                  "default" : ""
+              }
+          ]
+        },
+        
+        {
+          "label" : "focus",
+          "unique" : true,
+          "features" :
+          [
+              {
+                  "name" : "value",
+                  "type" : "bool",
+                  "default" : true
+              }
+          ]
+        }
+    ]
+}
