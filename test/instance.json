@@ -1,66 +1,62 @@
 {
     "domain" : "test/domain.json",
     "name": "dummy",
+    "type": "video",
+    "filename": "test/0.mpg",
     "sequence" :
     [
         {
-            "img" : "test/dummy/img0.png",
-            "labels" :
-            [
+            "name" : "oclussion",
+            "start" : 0,
+            "end" : 100,
+            "features" : [
+                {"name" : "value", "value": true},
+                {"name" : "object", "value": "lens"},
+                {"name" : "description", "value": "Lorem ipsum"}
+            ]
+        }
+        {
+            "name" : "oclussion",
+            "start" : 150,
+            "end" : 200,
+            "features" : [
+                {"name" : "value", "value": true},
+                {"name" : "object", "value": "lens"},
+                {"name" : "description", "value": ""}
             ]
         },
         {
-            "img" : "test/dummy/img1.png",
-            "labels" :
-            [
-                {
-                    "id": 1,
-                    "name" : "oclussion",
-                    "features" : [
-                        {"name" : "value", "value": true},
-                        {"name" : "object", "value": "lens"},
-                        {"name" : "description", "value": "Lorem ipsum"}
-                    ]
-                }
+            "name" : "focus",
+            "start" : 0,
+            "end" : 200,
+            "features" : [
+                {"name" : "value", "value": true},
             ]
         },
         {
-            "img" : "test/dummy/img2.png",
-            "labels" : []
+            "name" : "oclussion",
+            "start" : 150,
+            "end" : 200,
+            "features" : [
+                {"name" : "value", "value": true},
+                {"name" : "object", "value": "hand"},
+                {"name" : "description", "value": "Doctor's hand"}
+            ]
         },
         {
-            "img" : "test/dummy/img3.png",
-            "labels" : []
+            "name" : "focus",
+            "start" : 300,
+            "end" : 500,
+            "features" : [
+                {"name" : "value", "value": true},
+            ]
         },
         {
-            "img" : "test/dummy/img4.png",
-            "labels" :
-            [
-                {
-                    "id": 1,
-                    "name" : "oclussion",
-                    "features" : [
-                        {"name" : "value", "value": true},
-                        {"name" : "object", "value": "lens"},
-                        {"name" : "description", "value": ""}
-                    ]
-                },
-                {
-                    "id": 2,
-                    "name" : "focus",
-                    "features" : [
-                        {"name" : "value", "value": true},
-                    ]
-                },
-                {
-                    "id": 3,
-                    "name" : "oclussion",
-                    "features" : [
-                        {"name" : "value", "value": true},
-                        {"name" : "object", "value": "hand"},
-                        {"name" : "description", "value": "Doctor's hand"}
-                    ]
-                }
+            "name" : "focus",
+            "start" : 600,
+            "end" : 1000,
+            "features" : [
+                {"name" : "value", "value": false},
             ]
         },
     ]
