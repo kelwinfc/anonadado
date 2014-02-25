@@ -6,7 +6,7 @@
     "sequence" :
     [
         {
-            "name" : "oclussion",
+            "name" : "occlusion",
             "start" : 0,
             "end" : 100,
             "features" : [
@@ -16,7 +16,7 @@
             ]
         },
         {
-            "name" : "oclussion",
+            "name" : "occlusion",
             "start" : 150,
             "end" : 200,
             "features" : [
@@ -34,7 +34,7 @@
             ]
         },
         {
-            "name" : "oclussion",
+            "name" : "occlusion",
             "start" : 150,
             "end" : 200,
             "features" : [

@@ -13,6 +13,9 @@ class feature:
         self.ftype = json.get("type", None)
         self.value = json.get("value", None)
     
+    def parse_value(self, json):
+        pass
+    
     def __str__(self):
         return str(self.to_json())
 
@@ -157,8 +160,27 @@ class annotation_manager:
         self.sequence = []
         
         # TODO parse the sequence of attributes
-        pass
-
+        for s in i["sequence"]:
+            if not s["name"] in self.domain:
+                continue
+            else:
+                next_instance = self.domain[s["name"]].get_instance()
+                next_instance.set_values(s)
+                print s["name"]
+                print s
+                print
+            
+            #{
+                #"name" : "oclussion",
+                #"start" : 0,
+                #"end" : 100,
+                #"features" : [
+                    #{"name" : "value", "value": true},
+                    #{"name" : "object", "value": "lens"},
+                    #{"name" : "description", "value": "Lorem ipsum"}
+                #]
+            #}
+    
     def domain_to_json(self):
         return { "name" : self.domain_name,
                  "labels" : map(lambda x : self.domain[x].to_json(),
