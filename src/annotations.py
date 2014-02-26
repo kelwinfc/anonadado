@@ -79,6 +79,15 @@ class choice_feature(feature):
             ret["values"] = self.values
         return ret
 
+class bbox_feature(feature):
+    def __init__(self, json):
+        feature.__init__(self, json, 0)
+        self.upper_left = json.get("upper_left",None)
+        self.lower_right = json.get("lower_right",None)
+    
+    def get_instance(self):
+        return int_feature(self.to_json())
+
 class_by_name = {"bool": bool_feature,
                  "string": str_feature,
                  "int": int_feature,
@@ -138,9 +147,9 @@ class annotation_manager:
         self.domain = {}
         self.labels = []
         self.domain_name = ""
-        self.domain_filename = ""
+        self.domain_filename = None
         self.instance_name = ""
-        self.instance_filename = ""
+        self.instance_filename = None
         self.itype = None
         
         if domain_filename is not None:
@@ -165,11 +174,16 @@ class annotation_manager:
         f = open(instance_filename).read()
         i = json.loads(f)
         
-        if self.domain_filename != i["domain"]:
+        if self.domain_filename is not None and \
+           self.domain_filename != i["domain"]:
             return
+        elif self.domain_filename is None:
+            self.parse_domain(i["domain"])
+        
         self.instance_name = i["name"]
         self.itype = i["type"]
         self.instance_filename = i["filename"]
+        self.domain_filename = i["domain"]
         self.sequence = []
         
         for s in i["sequence"]:

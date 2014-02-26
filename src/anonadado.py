@@ -3,13 +3,13 @@
 
 import sys
 import json
-import pygame
-from pygame.locals import *
 from annotations import *
 import numpy as np
 import cv2
-
 import cv2.cv as cv
+import wx
+import os
+import wx.lib.agw.multidirdialog as MDD
 
 def parse_args(a):
     def check(i, a, n, s):
@@ -33,27 +33,105 @@ def parse_args(a):
     
     return d
 
-pygame.init()
+class Anonadado(wx.Frame):
+    
+    def __init__(self, *args, **kw):
+        super(Anonadado, self).__init__(*args, **kw)
+        self.am = None
+        self.InitUI()
+        
+    def setAnnotator(self, am):
+        self.am = am
+    
+    def InitUI(self):
+        
+        pnl = wx.Panel(self)
+        #cbtn = wx.Button(pnl, label='Close', pos=(20, 30))
+        #cbtn.Bind(wx.EVT_BUTTON, self.OnClose)
 
-dargs = parse_args(sys.argv[1:])
+        menubar = wx.MenuBar()
+        fileMenu = wx.Menu()
+        load_domain = fileMenu.Append(wx.ID_OPEN, 'Load Domain', 'Load Domain')
+        load_instance = fileMenu.Append(wx.ID_SAVE, 'Load Instance',
+                                        'Load Instance')
+        quit_item = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+        menubar.Append(fileMenu, '&File')
+        
+        self.SetMenuBar(menubar)
+        
+        self.Bind(wx.EVT_MENU, self.OnQuit, quit_item)
+        self.Bind(wx.EVT_MENU, self.OnLoadDomain, load_domain)
+        self.Bind(wx.EVT_MENU, self.OnLoadInstance, load_instance)
+        
+        self.SetSize((250, 200))
+        self.SetTitle('Anonadado')
+        self.Centre()
+        self.Show(True)
+        #self.Maximize(True)
+    
+    def OnClose(self, e):
+        self.Close(True)
 
-if not pygame.font: print 'Warning, fonts disabled'
-if not pygame.mixer: print 'Warning, sound disabled'
+    def OnQuit(self, e):
+        self.Close()
 
-domain_filename = dargs.get("domain", None)
-instance_filename = dargs.get("instance", None)
+    def OnLoadDomain(self, e):
+        dlg = wx.FileDialog(
+            self, message = "Choose a file",
+            defaultDir = os.getcwd(),
+            defaultFile = "",
+            wildcard = "Json (*.json)|*.json|" \
+                       "All files (*.*)|*.*",
+            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPaths()[0]
+            self.am.parse_domain(path)
+        dlg.Destroy()
+    
+    def OnLoadInstance(self, e):
+        dlg = wx.FileDialog(
+            self, message = "Choose a file",
+            defaultDir = os.getcwd(),
+            defaultFile = "",
+            wildcard = "Json (*.json)|*.json|" \
+                       "All files (*.*)|*.*",
+            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPaths()[0]
+            self.am.parse_instance(path)
+        dlg.Destroy()
+    
+def main():
 
-am = annotation_manager()
-am.parse_domain(domain_filename)
-am.parse_instance(instance_filename)
+    dargs = parse_args(sys.argv[1:])
+    
+    domain_filename = dargs.get("domain", None)
+    instance_filename = dargs.get("instance", None)
 
-if "out-domain" in dargs:
-    f  = open(dargs["out-domain"], 'w')
-    json.dump(am.domain_to_json(), f, indent = 4)
+    am = annotation_manager()
 
-if "out-instance" in dargs:
-    f  = open(dargs["out-instance"], 'w')
-    json.dump(am.instance_to_json(), f, indent = 4)
+    if domain_filename is not None:
+        am.parse_domain(domain_filename)
+    if instance_filename is not None:
+        am.parse_instance(instance_filename)
+    
+    app = wx.App()
+    a = Anonadado(None)
+    a.setAnnotator(am)
+    app.MainLoop()
+
+    if "out-domain" in dargs:
+        f  = open(dargs["out-domain"], 'w')
+        json.dump(am.domain_to_json(), f, indent = 4)
+
+    if "out-instance" in dargs:
+        f  = open(dargs["out-instance"], 'w')
+        json.dump(am.instance_to_json(), f, indent = 4)
+
+if __name__ == '__main__':
+    main()
 
 #cap = cv2.VideoCapture('test/0.mpg')
 
