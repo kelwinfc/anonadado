@@ -65,12 +65,13 @@ class Anonadado(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnLoadDomain, load_domain)
         self.Bind(wx.EVT_MENU, self.OnLoadInstance, load_instance)
         self.Bind(wx.EVT_MENU, self.OnNewProject, new_project)
+
         
         self.SetSize((250, 200))
         self.SetTitle('Anonadado')
         self.Centre()
         self.Show(True)
-        #self.Maximize(True)
+        self.Maximize(True)
     
     def OnClose(self, e):
         self.Close(True)
