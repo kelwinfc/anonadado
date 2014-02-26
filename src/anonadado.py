@@ -54,6 +54,8 @@ class Anonadado(wx.Frame):
         load_domain = fileMenu.Append(wx.ID_OPEN, 'Load Domain', 'Load Domain')
         load_instance = fileMenu.Append(wx.ID_SAVE, 'Load Instance',
                                         'Load Instance')
+        new_project = fileMenu.Append(wx.ID_ANY, 'New Project', 'New Project')
+        
         quit_item = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         menubar.Append(fileMenu, '&File')
         
@@ -62,6 +64,7 @@ class Anonadado(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnQuit, quit_item)
         self.Bind(wx.EVT_MENU, self.OnLoadDomain, load_domain)
         self.Bind(wx.EVT_MENU, self.OnLoadInstance, load_instance)
+        self.Bind(wx.EVT_MENU, self.OnNewProject, new_project)
         
         self.SetSize((250, 200))
         self.SetTitle('Anonadado')
@@ -102,7 +105,18 @@ class Anonadado(wx.Frame):
             path = dlg.GetPaths()[0]
             self.am.parse_instance(path)
         dlg.Destroy()
-    
+
+    def OnNewProject(self, e):
+        dial = wx.MessageDialog(None, 'Are you sure to create a new project? '\
+                                'You will lose your local changes.',
+                                'Question',
+                                wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
+        r = dial.ShowModal()
+        if r == wx.ID_YES:
+            self.am = annotation_manager()
+        elif r == wx.ID_NO:
+            pass
+
 def main():
 
     dargs = parse_args(sys.argv[1:])
