@@ -11,26 +11,49 @@ import cv2
 
 import cv2.cv as cv
 
+def parse_args(a):
+    def check(i, a, n, s):
+        if a[i] == s and i + 1 < n:
+            return True
+        else:
+            return False
+    
+    d = {}
+    n = len(a)
+    
+    for i in xrange(n):
+        if check(i, a, n, "--domain"):
+            d["domain"] = a[i + 1]
+        elif check(i, a, n, "--instance"):
+            d["instance"] = a[i + 1]
+        elif check(i, a, n, "--out-domain"):
+            d["out-domain"] = a[i + 1]
+        elif check(i, a, n, "--out-instance"):
+            d["out-instance"] = a[i + 1]
+    
+    return d
+
 pygame.init()
+
+dargs = parse_args(sys.argv[1:])
 
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
 
-domain_filename = None
-instance_filename = None
-
-if len(sys.argv) > 1:
-    domain_filename = sys.argv[1]
-if len(sys.argv) > 2:
-    instance_filename = sys.argv[2]
+domain_filename = dargs.get("domain", None)
+instance_filename = dargs.get("instance", None)
 
 am = annotation_manager()
 am.parse_domain(domain_filename)
 am.parse_instance(instance_filename)
 
-print am.domain_to_json()
-print
-print am.instance_to_json()
+if "out-domain" in dargs:
+    f  = open(dargs["out-domain"], 'w')
+    json.dump(am.domain_to_json(), f, indent = 4)
+
+if "out-instance" in dargs:
+    f  = open(dargs["out-instance"], 'w')
+    json.dump(am.instance_to_json(), f, indent = 4)
 
 #cap = cv2.VideoCapture('test/0.mpg')
 
