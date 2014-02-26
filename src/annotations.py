@@ -34,6 +34,9 @@ class feature:
     def get_instance(self):
         return feature(self.to_json())
 
+    def set_values(self, json):
+        self.value = json.get("value", self.default)
+
 class bool_feature(feature):
     def __init__(self, json):
         feature.__init__(self, json, True)
@@ -111,7 +114,14 @@ class annotation:
             ret["end"] = self.end
         
         return ret
-
+    
+    def set_values(self, json):
+        self.set_interval(json["start"], json["end"])
+        for f in json["features"]:
+            for my_f in self.features:
+                if my_f.name == f["name"]:
+                    my_f.set_values(f)
+    
     def get_instance(self):
         return annotation(self.to_json())
     
@@ -159,27 +169,13 @@ class annotation_manager:
         self.instance_filename = i["filename"]
         self.sequence = []
         
-        # TODO parse the sequence of attributes
         for s in i["sequence"]:
             if not s["name"] in self.domain:
                 continue
             else:
                 next_instance = self.domain[s["name"]].get_instance()
                 next_instance.set_values(s)
-                print s["name"]
-                print s
-                print
-            
-            #{
-                #"name" : "oclussion",
-                #"start" : 0,
-                #"end" : 100,
-                #"features" : [
-                    #{"name" : "value", "value": true},
-                    #{"name" : "object", "value": "lens"},
-                    #{"name" : "description", "value": "Lorem ipsum"}
-                #]
-            #}
+                self.sequence.append(next_instance)
     
     def domain_to_json(self):
         return { "name" : self.domain_name,

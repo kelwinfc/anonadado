@@ -6,6 +6,18 @@
     "sequence" :
     [
         {
+          "name" : "patient",
+          "start" : 0,
+          "end" : 0,
+          "features" :
+          [
+              {
+                  "name" : "id",
+                  "value" : 42
+              }
+          ]
+        },
+        {
             "name" : "occlusion",
             "start" : 0,
             "end" : 100,
