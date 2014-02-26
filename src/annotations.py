@@ -19,16 +19,17 @@ class feature:
     def __str__(self):
         return str(self.to_json())
 
-    def to_json(self):
-        ret = {"name" : self.name,
-               "default" : self.default,
-               "type" : self.ftype
-              }
+    def to_json(self, verbose=True):
+        ret = {"name" : self.name}
+        if verbose:
+            ret["default"] = self.default
+            
+            if self.ftype is not None:
+                ret["type"] = self.ftype
+        
         if self.value is not None:
             ret["value"] = self.value
-        if self.ftype is not None:
-            ret["type"] = self.ftype
-
+        
         return ret
     
     def get_instance(self):
@@ -72,9 +73,10 @@ class choice_feature(feature):
         if not self.default in self.values:
             self.default = None
     
-    def to_json(self):
-        ret = feature.to_json(self)
-        ret["values"] = self.values
+    def to_json(self, verbose=True):
+        ret = feature.to_json(self, verbose)
+        if verbose:
+            ret["values"] = self.values
         return ret
 
 class_by_name = {"bool": bool_feature,
@@ -102,12 +104,13 @@ class annotation:
     def __str__(self):
         return str(self.to_json())
     
-    def to_json(self):
+    def to_json(self, verbose=True):
         ret = { "name" : self.name,
-                "is_unique" : self.is_unique,
-                "is_global" : self.is_global,
-                "features" : map(lambda x : x.to_json(), self.features)
+                "features" : map(lambda x : x.to_json(verbose), self.features)
               }
+        if verbose:
+            ret["is_unique"] = self.is_unique
+            ret["is_global"] = self.is_global
         if self.start != -1:
             ret["start"] = self.start
         if self.end != -1:
@@ -188,7 +191,7 @@ class annotation_manager:
                  "name" : self.instance_name,
                  "type" : self.itype,
                  "filename" : self.instance_filename,
-                 "sequence" : map(lambda x : x.to_json(), self.sequence)
+                 "sequence" : map(lambda x : x.to_json(False), self.sequence)
                }
     
     def add_label(s):
