@@ -33,6 +33,33 @@ def parse_args(a):
     
     return d
 
+class DomainPanel(wx.Panel):
+    
+    def __init__(self, parent):
+        """"""
+
+        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+        
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        #txtOne = wx.TextCtrl(self, wx.ID_ANY, "")
+        #txtTwo = wx.TextCtrl(self, wx.ID_ANY, "")
+
+        #sizer = wx.BoxSizer(wx.VERTICAL)
+        #sizer.Add(txtOne, 0, wx.ALL, 5)
+        #sizer.Add(txtTwo, 0, wx.ALL, 5)
+
+        self.SetSizer(sizer)
+
+class InstancePanel(wx.Panel):
+
+    def __init__(self, parent):
+        """"""
+
+        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)        
+        self.SetSizer(sizer)
+
 class Anonadado(wx.Frame):
     
     def __init__(self, *args, **kw):
@@ -58,6 +85,19 @@ class Anonadado(wx.Frame):
         
         quit_item = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         menubar.Append(fileMenu, '&File')
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        nestedNotebook = wx.Notebook(self, wx.ID_ANY)
+        domainTab = DomainPanel(nestedNotebook)
+        instanceTab = InstancePanel(nestedNotebook)
+        nestedNotebook.AddPage(domainTab, "Domain")
+        nestedNotebook.AddPage(instanceTab, "Instance")
+        
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(nestedNotebook, 1, wx.ALL|wx.EXPAND, 5)
+        
+        self.SetSizer(sizer)
         
         self.SetMenuBar(menubar)
         
@@ -65,7 +105,6 @@ class Anonadado(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnLoadDomain, load_domain)
         self.Bind(wx.EVT_MENU, self.OnLoadInstance, load_instance)
         self.Bind(wx.EVT_MENU, self.OnNewProject, new_project)
-
         
         self.SetSize((250, 200))
         self.SetTitle('Anonadado')
@@ -79,34 +118,29 @@ class Anonadado(wx.Frame):
     def OnQuit(self, e):
         self.Close()
 
+    def get_file_dialog(self):
+        return wx.FileDialog(self, message = "Choose a file",
+                             defaultDir = os.getcwd(),
+                             defaultFile = "",
+                             wildcard = "Json (*.json)|*.json|" \
+                                        "All files (*.*)|*.*",
+                             style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                            )
+    
     def OnLoadDomain(self, e):
-        dlg = wx.FileDialog(
-            self, message = "Choose a file",
-            defaultDir = os.getcwd(),
-            defaultFile = "",
-            wildcard = "Json (*.json)|*.json|" \
-                       "All files (*.*)|*.*",
-            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
-            )
+        dlg = self.get_file_dialog()
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPaths()[0]
             self.am.parse_domain(path)
         dlg.Destroy()
     
     def OnLoadInstance(self, e):
-        dlg = wx.FileDialog(
-            self, message = "Choose a file",
-            defaultDir = os.getcwd(),
-            defaultFile = "",
-            wildcard = "Json (*.json)|*.json|" \
-                       "All files (*.*)|*.*",
-            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
-            )
+        dlg = self.get_file_dialog()
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPaths()[0]
             self.am.parse_instance(path)
         dlg.Destroy()
-
+    
     def OnNewProject(self, e):
         dial = wx.MessageDialog(None, 'Are you sure to create a new project? '\
                                 'You will lose your local changes.',
