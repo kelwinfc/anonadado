@@ -35,15 +35,18 @@ def parse_args(a):
 
 class DomainPanel(wx.Panel):
     
-    def __init__(self, parent):
-        """"""
-
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
-        
+    def __init__(self, parent, an):
+        wx.Panel.__init__(self, parent=parent, id=wx.NewId())
+        self.top_app = an
         sizer = wx.BoxSizer(wx.VERTICAL)
+        open_domain = wx.BitmapButton(self, id=wx.ID_ANY,
+                                      bitmap=wx.Bitmap('media/open.png'),
+                                      pos=(10, 10))
+        
+        open_domain.Bind(wx.EVT_BUTTON, self.top_app.OnLoadDomain)
         #txtOne = wx.TextCtrl(self, wx.ID_ANY, "")
         #txtTwo = wx.TextCtrl(self, wx.ID_ANY, "")
-
+        
         #sizer = wx.BoxSizer(wx.VERTICAL)
         #sizer.Add(txtOne, 0, wx.ALL, 5)
         #sizer.Add(txtTwo, 0, wx.ALL, 5)
@@ -52,12 +55,10 @@ class DomainPanel(wx.Panel):
 
 class InstancePanel(wx.Panel):
 
-    def __init__(self, parent):
-        """"""
-
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)        
+    def __init__(self, parent, an):
+        wx.Panel.__init__(self, parent=parent, id=wx.NewId())
+        self.top_app = an
+        sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(sizer)
 
 class Anonadado(wx.Frame):
@@ -81,16 +82,16 @@ class Anonadado(wx.Frame):
         load_domain = fileMenu.Append(wx.ID_OPEN, 'Load Domain', 'Load Domain')
         load_instance = fileMenu.Append(wx.ID_SAVE, 'Load Instance',
                                         'Load Instance')
-        new_project = fileMenu.Append(wx.ID_ANY, 'New Project', 'New Project')
+        new_project = fileMenu.Append(wx.NewId(), 'New Project', 'New Project')
         
         quit_item = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         menubar.Append(fileMenu, '&File')
-
+        
         sizer = wx.BoxSizer(wx.VERTICAL)
         
-        nestedNotebook = wx.Notebook(self, wx.ID_ANY)
-        domainTab = DomainPanel(nestedNotebook)
-        instanceTab = InstancePanel(nestedNotebook)
+        nestedNotebook = wx.Notebook(self, wx.NewId())
+        domainTab = DomainPanel(nestedNotebook, self)
+        instanceTab = InstancePanel(nestedNotebook, self)
         nestedNotebook.AddPage(domainTab, "Domain")
         nestedNotebook.AddPage(instanceTab, "Instance")
         
