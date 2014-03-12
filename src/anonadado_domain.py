@@ -24,6 +24,15 @@ class DomainPanel(wx.Panel):
                                            (200, 300), [],
                                            wx.LB_SINGLE|wx.EXPAND)
         self.domainLabelsList.SetSelection(0)
+
+        # List of label features
+        self.domainFeaturesLabel = \
+            wx.StaticText(self, wx.ID_ANY, "Domain labels")
+        self.domainFeaturesList = \
+            wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition, (200, 300), [],
+                       wx.LB_SINGLE|wx.EXPAND)
+        
+        self.domainFeaturesList.SetSelection(0)
         
         # Global commands (Load, Save, New, ...)
         self.newDomainButton = wx.BitmapButton(self, id=wx.ID_ANY,
@@ -42,8 +51,9 @@ class DomainPanel(wx.Panel):
     def bindControls(self):
         self.addLabelInput.Bind(wx.EVT_TEXT_ENTER, self.OnAddLabel)
         self.addLabelButton.Bind(wx.EVT_BUTTON, self.OnAddLabel)
-        self.domainLabelsList.Bind(wx.EVT_LISTBOX, self.OnSelect)
-
+        self.domainLabelsList.Bind(wx.EVT_LISTBOX, self.OnLabelSelect)
+        self.domainFeaturesList.Bind(wx.EVT_LISTBOX, self.OnFeatureSelect)
+        
         self.newDomainButton.Bind(wx.EVT_BUTTON, self.top_app.OnNewProject)
         self.openDomainButton.Bind(wx.EVT_BUTTON, self.top_app.OnLoadDomain)
         self.saveDomainButton.Bind(wx.EVT_BUTTON, self.top_app.OnSaveDomain)
@@ -55,8 +65,10 @@ class DomainPanel(wx.Panel):
         sizer = wx.BoxSizer(wx.HORIZONTAL)          # Global
         left_sizer = wx.BoxSizer(wx.VERTICAL)       # Left bar
         right_sizer = wx.BoxSizer(wx.VERTICAL)      # Right bar
+        
         form_sizer = wx.BoxSizer(wx.HORIZONTAL)     # Add label form
-        list_sizer = wx.BoxSizer(wx.VERTICAL)       # List of labels
+        labels_sizer = wx.BoxSizer(wx.VERTICAL)     # List of labels
+        features_sizer = wx.BoxSizer(wx.VERTICAL)   # List of features
         commands_sizer = wx.BoxSizer(wx.HORIZONTAL) # Commands
         
         seq = [
@@ -64,7 +76,13 @@ class DomainPanel(wx.Panel):
                (sizer, left_sizer), (sizer, right_sizer),
                (left_sizer, commands_sizer, wx.CENTER),
                (left_sizer, form_sizer, wx.CENTER),
-               (left_sizer, list_sizer),
+               (left_sizer, labels_sizer),
+               (left_sizer, features_sizer),
+               
+               # Commands
+               (commands_sizer, self.newDomainButton),
+               (commands_sizer, self.openDomainButton),
+               (commands_sizer, self.saveDomainButton),
                
                # Add Label Form
                (form_sizer, self.addLabelLabel),
@@ -72,24 +90,21 @@ class DomainPanel(wx.Panel):
                (form_sizer, self.addLabelButton),
 
                # List of labels
-               (list_sizer, self.domainLabelsLabel),
-               (list_sizer, self.domainLabelsList, wx.ALL),
+               (labels_sizer, self.domainLabelsLabel),
+               (labels_sizer, self.domainLabelsList),
 
-               # Commands
-               (commands_sizer, self.newDomainButton),
-               (commands_sizer, self.openDomainButton),
-               (commands_sizer, self.saveDomainButton)
+               # List of Features
+               (features_sizer, self.domainFeaturesLabel),
+               (features_sizer, self.domainFeaturesList)
               ]
         
         for n in seq:
-            
-            if len(n) == 2:
-                (s,i) = n
-                addToSizer(s, i)
-            elif len(n) == 3:
-                (s,i,a) = n
-                print a, n
-                addToSizer(s, i, a)
+            a = wx.ALL
+            s = n[0]
+            i = n[1]
+            if len(n) == 3:
+                a = n[2]
+            addToSizer(s, i, a)
 
         
         self.SetSizer(sizer)
@@ -109,9 +124,12 @@ class DomainPanel(wx.Panel):
         self.setLayout()
         print "layout"
     
-    def OnSelect(self, event):
+    def OnLabelSelect(self, event):
         index = event.GetSelection()
         print index
+
+    def OnFeatureSelect(self, event):
+        print "blah blah"
     
     def OnAddLabel(self, event):
         name = self.addLabelInput.GetValue()
