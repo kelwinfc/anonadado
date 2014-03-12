@@ -5,8 +5,103 @@ import json
 from annotations import *
 import wx
 
-class DomainPanel(wx.Panel):
+class AnnotationWidget(wx.Panel):
+    """
+        {'features': [{'default': 0, 'type': u'int', 'name': u'id'}]
+        }
+    """
+    def __init__(self, parent, annotation, id):
+        wx.Panel.__init__(self, parent, id, style=wx.SUNKEN_BORDER)
+        self.annotation = annotation
+        self.createControls()
+        self.setInitialValues()
+        self.bindControls()
+        self.setLayout()
+    
+    def createControls(self):
+        # Name
+        self.name = wx.StaticText(self, -1, self.annotation.name, (20, 100))
+        font = wx.Font(16, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
+        self.name.SetFont(font)
+        
+        # Is Global?
+        self.isGlobalButtonLabel = wx.StaticText(self, label="Is Global:")
+        self.isGlobalButtonTrue = wx.RadioButton(self, -1, 'True',
+                                                 (10, 10), style=wx.RB_GROUP)
+        self.isGlobalButtonFalse = wx.RadioButton(self, -1, 'False', (10, 10))
 
+        # Is Unique?
+        self.isUniqueButtonLabel = wx.StaticText(self, label="Is Unique:")
+        self.isUniqueButtonTrue = wx.RadioButton(self, -1, 'True',
+                                                 (10, 10), style=wx.RB_GROUP)
+        self.isUniqueButtonFalse = wx.RadioButton(self, -1, 'False', (10, 10))
+    
+    def setInitialValues(self):
+        if not self.annotation.is_global:
+            self.isGlobalButtonFalse.SetValue(True)
+        if not self.annotation.is_unique:
+            self.isUniqueButtonFalse.SetValue(True)
+    
+    def bindControls(self):
+        self.Bind(wx.EVT_RADIOBUTTON, self.SetGlobal,
+                  id=self.isGlobalButtonTrue.GetId())
+        self.Bind(wx.EVT_RADIOBUTTON, self.SetGlobal,
+                  id=self.isGlobalButtonFalse.GetId())
+
+        self.Bind(wx.EVT_RADIOBUTTON, self.SetUnique,
+                  id=self.isUniqueButtonTrue.GetId())
+        self.Bind(wx.EVT_RADIOBUTTON, self.SetUnique,
+                  id=self.isUniqueButtonFalse.GetId())
+    
+    def setLayout(self):
+        def addToSizer(sizer, item, alignment=wx.ALL):
+            sizer.Add(item, 0, alignment, 5)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.formSizer = wx.GridSizer(rows=2, cols=2, hgap=20, vgap=5)
+        self.globalSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.uniqueSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        seq = [ (self.sizer, self.name, wx.CENTER),
+                (self.sizer, self.formSizer, wx.CENTER),
+                (self.formSizer, self.globalSizer, wx.CENTER),
+                (self.formSizer, self.uniqueSizer),
+                
+                (self.globalSizer, self.isGlobalButtonLabel),
+                (self.globalSizer, self.isGlobalButtonTrue),
+                (self.globalSizer, self.isGlobalButtonFalse),
+
+                (self.uniqueSizer, self.isUniqueButtonLabel),
+                (self.uniqueSizer, self.isUniqueButtonTrue),
+                (self.uniqueSizer, self.isUniqueButtonFalse),
+              ]
+        
+        for n in seq:
+            a = wx.ALL
+            s = n[0]
+            i = n[1]
+            if len(n) == 3:
+                a = n[2]
+            addToSizer(s, i, a)
+        
+        self.SetSizer(self.sizer)
+    
+    def SetGlobal(self, event):
+        self.annotation.is_global = self.isGlobalButtonTrue.GetValue()
+
+    def SetUnique(self, event):
+        self.annotation.is_unique = self.isUniqueButtonTrue.GetValue()
+
+class DomainPanel(wx.Panel):
+    def __init__(self, parent, an):
+        wx.Panel.__init__(self, parent=parent, id=wx.NewId())
+        self.top_app = an
+
+        self.createControls()
+        self.addTooltips()
+        self.bindControls()
+        self.setLayout()
+    
     def createControls(self):
 
         # Add Label Form
@@ -24,7 +119,7 @@ class DomainPanel(wx.Panel):
                                            (200, 300), [],
                                            wx.LB_SINGLE|wx.EXPAND)
         self.domainLabelsList.SetSelection(0)
-
+        
         # List of label features
         self.domainFeaturesLabel = \
             wx.StaticText(self, wx.ID_ANY, "Domain labels")
@@ -41,6 +136,10 @@ class DomainPanel(wx.Panel):
           bitmap=wx.Bitmap('media/open.png'), style=wx.NO_BORDER, pos=(10, 10))
         self.saveDomainButton = wx.BitmapButton(self, id=wx.ID_ANY,
           bitmap=wx.Bitmap('media/save.png'), style=wx.NO_BORDER, pos=(10, 10))
+
+        self.annotationWidget = None
+        
+        self.select_label(0)
     
     def addTooltips(self):
         self.addLabelButton.SetToolTip(wx.ToolTip("Add label to domain"))
@@ -62,41 +161,44 @@ class DomainPanel(wx.Panel):
         def addToSizer(sizer, item, alignment=wx.ALL):
             sizer.Add(item, 0, alignment, 5)
         
-        sizer = wx.BoxSizer(wx.HORIZONTAL)          # Global
-        left_sizer = wx.BoxSizer(wx.VERTICAL)       # Left bar
-        right_sizer = wx.BoxSizer(wx.VERTICAL)      # Right bar
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)          # Global
+        self.left_sizer = wx.BoxSizer(wx.VERTICAL)       # Left bar
+        self.right_sizer = wx.BoxSizer(wx.VERTICAL)      # Right bar
         
-        form_sizer = wx.BoxSizer(wx.HORIZONTAL)     # Add label form
-        labels_sizer = wx.BoxSizer(wx.VERTICAL)     # List of labels
-        features_sizer = wx.BoxSizer(wx.VERTICAL)   # List of features
-        commands_sizer = wx.BoxSizer(wx.HORIZONTAL) # Commands
+        self.form_sizer = wx.BoxSizer(wx.HORIZONTAL)     # Add label form
+        self.labels_sizer = wx.BoxSizer(wx.VERTICAL)     # List of labels
+        self.features_sizer = wx.BoxSizer(wx.VERTICAL)   # List of features
+        self.commands_sizer = wx.BoxSizer(wx.HORIZONTAL) # Commands
         
         seq = [
                # Skeleton
-               (sizer, left_sizer), (sizer, right_sizer),
-               (left_sizer, commands_sizer, wx.CENTER),
-               (left_sizer, form_sizer, wx.CENTER),
-               (left_sizer, labels_sizer),
-               (left_sizer, features_sizer),
+               (self.sizer, self.left_sizer),
+               (self.sizer, self.right_sizer),
+               (self.left_sizer, self.commands_sizer, wx.CENTER),
+               (self.left_sizer, self.form_sizer, wx.CENTER),
+               (self.left_sizer, self.labels_sizer),
+               (self.left_sizer, self.features_sizer),
                
                # Commands
-               (commands_sizer, self.newDomainButton),
-               (commands_sizer, self.openDomainButton),
-               (commands_sizer, self.saveDomainButton),
+               (self.commands_sizer, self.newDomainButton),
+               (self.commands_sizer, self.openDomainButton),
+               (self.commands_sizer, self.saveDomainButton),
                
                # Add Label Form
-               (form_sizer, self.addLabelLabel),
-               (form_sizer, self.addLabelInput),
-               (form_sizer, self.addLabelButton),
+               (self.form_sizer, self.addLabelLabel),
+               (self.form_sizer, self.addLabelInput),
+               (self.form_sizer, self.addLabelButton),
 
                # List of labels
-               (labels_sizer, self.domainLabelsLabel),
-               (labels_sizer, self.domainLabelsList),
+               (self.labels_sizer, self.domainLabelsLabel),
+               (self.labels_sizer, self.domainLabelsList),
 
                # List of Features
-               (features_sizer, self.domainFeaturesLabel),
-               (features_sizer, self.domainFeaturesList)
-              ]
+               (self.features_sizer, self.domainFeaturesLabel),
+               (self.features_sizer, self.domainFeaturesList)
+              ] + \
+              ([(self.right_sizer, self.annotationWidget)]
+                  if (self.annotationWidget is not None) else [])
         
         for n in seq:
             a = wx.ALL
@@ -107,35 +209,39 @@ class DomainPanel(wx.Panel):
             addToSizer(s, i, a)
 
         
-        self.SetSizer(sizer)
+        self.SetSizer(self.sizer)
         self.load_domain()
-    
-    def __init__(self, parent, an):
-
-        wx.Panel.__init__(self, parent=parent, id=wx.NewId())
-        self.top_app = an
-        
-        self.createControls()
-        print "created"
-        self.addTooltips()
-        print "tooltips added"
-        self.bindControls()
-        print "controls binded"
-        self.setLayout()
-        print "layout"
     
     def OnLabelSelect(self, event):
         index = event.GetSelection()
-        print index
-
+        self.select_label(index)
+    
     def OnFeatureSelect(self, event):
-        print "blah blah"
+        index = event.GetSelection()
+        self.select_label(index)
+        print "Feature:", index
     
     def OnAddLabel(self, event):
         name = self.addLabelInput.GetValue()
         if name != "":
             self.top_app.am.domain[name] = annotation({"name":name})
             self.load_domain()
+    
+    def select_label(self, index):
+        if index >= 0 and self.domainLabelsList.GetString(index) != "":
+            label_name = self.domainLabelsList.GetString(index)
+            
+            if self.annotationWidget is not None:
+                self.annotationWidget.Hide()
+                self.right_sizer.Remove(self.annotationWidget)
+            
+            self.annotationWidget = \
+                AnnotationWidget(self, self.top_app.am.domain[label_name],
+                                 wx.ID_ANY)
+            self.right_sizer.Add(self.annotationWidget, 0, wx.ALL, 5)
+
+            self.right_sizer.Layout()
+            self.sizer.Layout()
     
     def load_domain(self):
         self.domainLabelsList.Set([])

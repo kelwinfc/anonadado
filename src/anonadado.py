@@ -49,15 +49,15 @@ class Anonadado(wx.Frame):
         
         pnl = wx.Panel(self, -1)
         
-        menubar = wx.MenuBar()
-        fileMenu = wx.Menu()
-        load_domain = fileMenu.Append(wx.ID_OPEN, 'Load Domain', 'Load Domain')
-        load_instance = fileMenu.Append(wx.ID_SAVE, 'Load Instance',
-                                        'Load Instance')
-        new_project = fileMenu.Append(wx.NewId(), 'New Project', 'New Project')
+        #menubar = wx.MenuBar()
+        #fileMenu = wx.Menu()
+        #load_domain = fileMenu.Append(wx.ID_OPEN, 'Load Domain', 'Load Domain')
+        #load_instance = fileMenu.Append(wx.ID_SAVE, 'Load Instance',
+                                        #'Load Instance')
+        #new_project = fileMenu.Append(wx.NewId(), 'New Project', 'New Project')
         
-        quit_item = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
-        menubar.Append(fileMenu, '&File')
+        #quit_item = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+        #menubar.Append(fileMenu, '&File')
         
         sizer = wx.BoxSizer(wx.VERTICAL)
         
@@ -72,15 +72,14 @@ class Anonadado(wx.Frame):
         
         pnl.SetSizer(sizer)
         
-        self.SetMenuBar(menubar)
+        #self.SetMenuBar(menubar)
         
-        self.Bind(wx.EVT_MENU, self.OnQuit, quit_item)
-        self.Bind(wx.EVT_MENU, self.OnLoadDomain, load_domain)
-        self.Bind(wx.EVT_MENU, self.OnLoadInstance, load_instance)
-        self.Bind(wx.EVT_MENU, self.OnNewProject, new_project)
-
-        #pnl.SetSize((250, 200))
-        self.SetTitle('Anonadado')
+        #self.Bind(wx.EVT_MENU, self.OnQuit, quit_item)
+        #self.Bind(wx.EVT_MENU, self.OnLoadDomain, load_domain)
+        #self.Bind(wx.EVT_MENU, self.OnLoadInstance, load_instance)
+        #self.Bind(wx.EVT_MENU, self.OnNewProject, new_project)
+        
+        self.SetTitle('Anonadado - Annotation Tool')
         self.Centre()
         self.Show(True)
         self.Maximize(True)
