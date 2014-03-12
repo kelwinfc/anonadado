@@ -114,6 +114,21 @@ class Anonadado(wx.Frame):
             self.domainTab.load_domain()
         elif r == wx.ID_NO:
             pass
+    
+    # TODO: remove occurences of this label in the instance
+    def OnRemoveLabel(self, e):
+        dial = wx.MessageDialog(None, 'Are you sure to remove this label?',
+                                'Question',
+                                wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
+        r = dial.ShowModal()
+
+        if r == wx.ID_YES:
+            selected_annotation = self.domainTab.domainLabelsList.GetSelection()
+            name = self.domainTab.domainLabelsList.GetString(selected_annotation)
+            self.am.domain.pop(name, None)
+            self.domainTab.load_domain()
+        elif r == wx.ID_NO:
+            pass
 
 def main():
 

@@ -10,8 +10,9 @@ class AnnotationWidget(wx.Panel):
         {'features': [{'default': 0, 'type': u'int', 'name': u'id'}]
         }
     """
-    def __init__(self, parent, annotation, id):
+    def __init__(self, parent, an, annotation, id):
         wx.Panel.__init__(self, parent, id, style=wx.SUNKEN_BORDER)
+        self.top_app = an
         self.annotation = annotation
         self.createControls()
         self.setInitialValues()
@@ -35,6 +36,10 @@ class AnnotationWidget(wx.Panel):
         self.isUniqueButtonTrue = wx.RadioButton(self, -1, 'True',
                                                  (10, 10), style=wx.RB_GROUP)
         self.isUniqueButtonFalse = wx.RadioButton(self, -1, 'False', (10, 10))
+
+        self.removeButton = \
+            wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
+                            bitmap=wx.Bitmap('media/remove.png'))
     
     def setInitialValues(self):
         if not self.annotation.is_global:
@@ -52,6 +57,8 @@ class AnnotationWidget(wx.Panel):
                   id=self.isUniqueButtonTrue.GetId())
         self.Bind(wx.EVT_RADIOBUTTON, self.SetUnique,
                   id=self.isUniqueButtonFalse.GetId())
+        self.Bind(wx.EVT_BUTTON, self.top_app.OnRemoveLabel,
+                  id=self.removeButton.GetId())
     
     def setLayout(self):
         def addToSizer(sizer, item, alignment=wx.ALL):
@@ -61,11 +68,14 @@ class AnnotationWidget(wx.Panel):
         self.formSizer = wx.GridSizer(rows=2, cols=2, hgap=20, vgap=5)
         self.globalSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.uniqueSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.commandSizer = wx.BoxSizer(wx.HORIZONTAL)
         
-        seq = [ (self.sizer, self.name, wx.CENTER),
+        seq = [ (self.sizer, self.removeButton, wx.ALIGN_RIGHT),
+                (self.sizer, self.name, wx.ALIGN_CENTER),
                 (self.sizer, self.formSizer, wx.CENTER),
                 (self.formSizer, self.globalSizer, wx.CENTER),
                 (self.formSizer, self.uniqueSizer),
+                (self.formSizer, self.commandSizer, wx.RIGHT),
                 
                 (self.globalSizer, self.isGlobalButtonLabel),
                 (self.globalSizer, self.isGlobalButtonTrue),
@@ -73,7 +83,7 @@ class AnnotationWidget(wx.Panel):
 
                 (self.uniqueSizer, self.isUniqueButtonLabel),
                 (self.uniqueSizer, self.isUniqueButtonTrue),
-                (self.uniqueSizer, self.isUniqueButtonFalse),
+                (self.uniqueSizer, self.isUniqueButtonFalse)
               ]
         
         for n in seq:
@@ -236,7 +246,8 @@ class DomainPanel(wx.Panel):
                 self.right_sizer.Remove(self.annotationWidget)
             
             self.annotationWidget = \
-                AnnotationWidget(self, self.top_app.am.domain[label_name],
+                AnnotationWidget(self, self.top_app,
+                                 self.top_app.am.domain[label_name],
                                  wx.ID_ANY)
             self.right_sizer.Add(self.annotationWidget, 0, wx.ALL, 5)
 
@@ -245,6 +256,10 @@ class DomainPanel(wx.Panel):
     
     def load_domain(self):
         self.domainLabelsList.Set([])
+
+        if self.annotationWidget is not None:
+            self.annotationWidget.Hide()
+            self.right_sizer.Remove(self.annotationWidget)
         
         if self.top_app.am is not None:
             for k in self.top_app.am.domain.keys():
