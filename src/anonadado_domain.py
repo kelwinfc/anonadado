@@ -23,8 +23,10 @@ class DomainPanel(wx.Panel):
         saveButton = wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
                                           bitmap=wx.Bitmap('media/add.png'))
         label = wx.StaticText(self, label="Label:")
-        self.labelTextCtrl = wx.TextCtrl(self, value="")
-
+        self.labelTextCtrl = wx.TextCtrl(self, value="",
+                                         style=wx.TE_PROCESS_ENTER)
+        self.labelTextCtrl.Bind(wx.EVT_TEXT_ENTER, self.add_label)
+        
         form_sizer = wx.BoxSizer(wx.HORIZONTAL)
         form_sizer.Add(label, 0, wx.ALL, 5)
         form_sizer.Add(self.labelTextCtrl, 0, wx.ALL, 5)
