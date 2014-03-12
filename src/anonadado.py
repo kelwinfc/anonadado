@@ -83,25 +83,37 @@ class Anonadado(wx.Frame):
                             )
     
     def OnLoadDomain(self, e):
+        previous_directory = os.getcwd()
+        
         dlg = self.get_file_dialog()
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPaths()[0]
             self.am.parse_domain(path)
             self.domainTab.load_domain()
         dlg.Destroy()
+
+        os.chdir(previous_directory)
     
     def OnLoadInstance(self, e):
+        previous_directory = os.getcwd()
+        
         dlg = self.get_file_dialog()
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPaths()[0]
             self.am.parse_instance(path)
         dlg.Destroy()
 
+        os.chdir(previous_directory)
+    
     def OnSaveDomain(self, e):
+        previous_directory = os.getcwd()
         pass
+        os.chdir(previous_directory)
 
     def OnSaveInstance(self, e):
+        previous_directory = os.getcwd()
         pass
+        os.chdir(previous_directory)
     
     def OnNewProject(self, e):
         dial = wx.MessageDialog(None, 'Are you sure to create a new project? '\

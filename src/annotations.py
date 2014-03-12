@@ -153,7 +153,7 @@ class annotation_manager:
         
         if domain_filename is not None:
             self.parse_domain(domain_filename)
-
+    
     def parse_domain(self, domain_filename):
 
         f = open(domain_filename).read()

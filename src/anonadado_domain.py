@@ -2,14 +2,55 @@
 # -*- coding: utf-8 -*-
 
 import json
+from os import getcwd as cwd
 from annotations import *
 import wx
 
+class FeatureWidget(wx.Panel):
+    def __init__(self, parent, an, annotation, feature, id):
+        wx.Panel.__init__(self, parent, id, style=wx.SUNKEN_BORDER)
+
+        self.top_app = an
+        self.annotation = annotation
+        self.feature = feature
+        
+        self.createControls()
+        self.setInitialValues()
+        self.bindControls()
+        self.setLayout()
+    
+    def createControls(self):
+        print self.feature
+        self.name = wx.StaticText(self, label=self.annotation.name + ":: " + \
+                                              self.feature.name)
+        font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
+        self.name.SetFont(font)
+    
+    def setInitialValues(self):
+        pass
+
+    def bindControls(self):
+        pass
+
+    def setLayout(self):
+        def addToSizer(sizer, item, alignment=wx.ALL):
+            sizer.Add(item, 0, alignment, 5)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        seq = [(self.sizer, self.name)]
+        
+        for n in seq:
+            a = wx.ALL
+            s = n[0]
+            i = n[1]
+            if len(n) == 3:
+                a = n[2]
+            addToSizer(s, i, a)
+
+        self.SetSizer(self.sizer)
+
 class AnnotationWidget(wx.Panel):
-    """
-        {'features': [{'default': 0, 'type': u'int', 'name': u'id'}]
-        }
-    """
     def __init__(self, parent, an, annotation, id):
         wx.Panel.__init__(self, parent, id, style=wx.SUNKEN_BORDER)
         self.top_app = an
@@ -39,7 +80,16 @@ class AnnotationWidget(wx.Panel):
 
         self.removeButton = \
             wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
-                            bitmap=wx.Bitmap('media/remove.png'))
+                            bitmap=wx.Bitmap(cwd() + '/media/remove.png'),
+                            pos=(10,10))
+        # Features
+        self.features = []
+        for f in self.annotation.features:
+            self.add_feature(f)
+
+    def add_feature(self, f):
+        nf = FeatureWidget(self, self.top_app, self.annotation, f,wx.ID_ANY)
+        self.features.append(nf)
     
     def setInitialValues(self):
         if not self.annotation.is_global:
@@ -53,12 +103,9 @@ class AnnotationWidget(wx.Panel):
         self.Bind(wx.EVT_RADIOBUTTON, self.SetGlobal,
                   id=self.isGlobalButtonFalse.GetId())
 
-        self.Bind(wx.EVT_RADIOBUTTON, self.SetUnique,
-                  id=self.isUniqueButtonTrue.GetId())
-        self.Bind(wx.EVT_RADIOBUTTON, self.SetUnique,
-                  id=self.isUniqueButtonFalse.GetId())
-        self.Bind(wx.EVT_BUTTON, self.top_app.OnRemoveLabel,
-                  id=self.removeButton.GetId())
+        self.isUniqueButtonTrue.Bind(wx.EVT_RADIOBUTTON, self.SetUnique)
+        self.isUniqueButtonFalse.Bind(wx.EVT_RADIOBUTTON, self.SetUnique)
+        self.removeButton.Bind(wx.EVT_BUTTON, self.top_app.OnRemoveLabel)
     
     def setLayout(self):
         def addToSizer(sizer, item, alignment=wx.ALL):
@@ -75,7 +122,6 @@ class AnnotationWidget(wx.Panel):
                 (self.sizer, self.formSizer, wx.CENTER),
                 (self.formSizer, self.globalSizer, wx.CENTER),
                 (self.formSizer, self.uniqueSizer),
-                (self.formSizer, self.commandSizer, wx.RIGHT),
                 
                 (self.globalSizer, self.isGlobalButtonLabel),
                 (self.globalSizer, self.isGlobalButtonTrue),
@@ -85,6 +131,9 @@ class AnnotationWidget(wx.Panel):
                 (self.uniqueSizer, self.isUniqueButtonTrue),
                 (self.uniqueSizer, self.isUniqueButtonFalse)
               ]
+
+        for f in self.features:
+            seq.append( (self.sizer, f) )
         
         for n in seq:
             a = wx.ALL
@@ -95,6 +144,9 @@ class AnnotationWidget(wx.Panel):
             addToSizer(s, i, a)
         
         self.SetSizer(self.sizer)
+
+    def OnFeatureSelect(self, event):
+        pass
     
     def SetGlobal(self, event):
         self.annotation.is_global = self.isGlobalButtonTrue.GetValue()
@@ -117,7 +169,7 @@ class DomainPanel(wx.Panel):
         # Add Label Form
         self.addLabelButton = \
             wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
-                            bitmap=wx.Bitmap('media/add.png'))
+                            bitmap=wx.Bitmap(cwd() + '/media/add.png'))
         self.addLabelLabel = wx.StaticText(self, label="Label:")
         self.addLabelInput = wx.TextCtrl(self, value="",
                                          style=wx.TE_PROCESS_ENTER)
@@ -141,12 +193,15 @@ class DomainPanel(wx.Panel):
         
         # Global commands (Load, Save, New, ...)
         self.newDomainButton = wx.BitmapButton(self, id=wx.ID_ANY,
-          bitmap=wx.Bitmap('media/new.png'), style=wx.NO_BORDER, pos=(10, 10))
+          bitmap=wx.Bitmap(cwd() + '/media/new.png'), style=wx.NO_BORDER,
+                           pos=(10, 10))
         self.openDomainButton = wx.BitmapButton(self, id=wx.ID_ANY,
-          bitmap=wx.Bitmap('media/open.png'), style=wx.NO_BORDER, pos=(10, 10))
+          bitmap=wx.Bitmap(cwd() + '/media/open.png'), style=wx.NO_BORDER,
+                           pos=(10, 10))
         self.saveDomainButton = wx.BitmapButton(self, id=wx.ID_ANY,
-          bitmap=wx.Bitmap('media/save.png'), style=wx.NO_BORDER, pos=(10, 10))
-
+          bitmap=wx.Bitmap(cwd() + '/media/save.png'), style=wx.NO_BORDER,
+                           pos=(10, 10))
+        
         self.annotationWidget = None
         
         self.select_label(0)
