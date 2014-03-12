@@ -8,7 +8,7 @@ import wx
 
 class FeatureWidget(wx.Panel):
     def __init__(self, parent, an, annotation, feature, id):
-        wx.Panel.__init__(self, parent, id, style=wx.SUNKEN_BORDER)
+        wx.Panel.__init__(self, parent, id)
 
         self.top_app = an
         self.annotation = annotation
@@ -21,18 +21,19 @@ class FeatureWidget(wx.Panel):
     
     def createControls(self):
         print self.feature
-        self.name = wx.StaticText(self, label=self.annotation.name + ":: " + \
-                                              self.feature.name)
+        self.name = wx.StaticText(self,
+            label=self.annotation.name + ":: " + self.feature.name + \
+                  " (" + self.feature.ftype + ")")
         font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
         self.name.SetFont(font)
     
     def setInitialValues(self):
         pass
-
+    
     def bindControls(self):
         pass
 
-    def setLayout(self):
+    def setLayout(self, extra_values=[]):
         def addToSizer(sizer, item, alignment=wx.ALL):
             sizer.Add(item, 0, alignment, 5)
 
@@ -49,6 +50,64 @@ class FeatureWidget(wx.Panel):
             addToSizer(s, i, a)
 
         self.SetSizer(self.sizer)
+
+class DefaultValueFeatureWidget(FeatureWidget):
+    def __init__(self, parent, an, annotation, feature, id):
+        self.default = str(feature.default)
+        FeatureWidget.__init__(self, parent, an, annotation, feature, id)
+
+    def createControls(self):
+        FeatureWidget.createControls(self)
+
+        self.defaultLabel = wx.StaticText(self, label="Default value:")
+        self.defaultInput = wx.TextCtrl(self, value=self.default,
+                                        style=wx.TE_PROCESS_ENTER)
+    
+    def setLayout(self, extra_values=[]):
+
+        def addToSizer(sizer, item, alignment=wx.ALL):
+            sizer.Add(item, 0, alignment, 5)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.defaultSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        seq = [(self.sizer, self.name),
+               (self.sizer, self.defaultSizer),
+
+               (self.defaultSizer, self.defaultLabel),
+               (self.defaultSizer, self.defaultInput),
+              ]
+
+        for n in seq:
+            a = wx.ALL
+            s = n[0]
+            i = n[1]
+            if len(n) == 3:
+                a = n[2]
+            addToSizer(s, i, a)
+
+        self.SetSizer(self.sizer)
+
+class BoolFeatureWidget(DefaultValueFeatureWidget):
+    def __init__(self, parent, an, annotation, feature, id):
+        DefaultValueFeatureWidget.__init__(self, parent, an, annotation,
+                                           feature, id)
+
+class StringFeatureWidget(DefaultValueFeatureWidget):
+    def __init__(self, parent, an, annotation, feature, id):
+        DefaultValueFeatureWidget.__init__(self, parent, an, annotation,
+                                           feature, id)
+
+class IntFeatureWidget(DefaultValueFeatureWidget):
+    def __init__(self, parent, an, annotation, feature, id):
+        DefaultValueFeatureWidget.__init__(self, parent, an, annotation,
+                                           feature, id)
+
+widget_by_name = {"bool": BoolFeatureWidget,
+                  "string": StringFeatureWidget,
+                  "int": IntFeatureWidget,
+                  "choice": FeatureWidget
+                }
 
 class AnnotationWidget(wx.Panel):
     def __init__(self, parent, an, annotation, id):
@@ -88,7 +147,8 @@ class AnnotationWidget(wx.Panel):
             self.add_feature(f)
 
     def add_feature(self, f):
-        nf = FeatureWidget(self, self.top_app, self.annotation, f,wx.ID_ANY)
+        nf = widget_by_name[f.ftype](self, self.top_app, self.annotation, f,
+                                     wx.ID_ANY)
         self.features.append(nf)
     
     def setInitialValues(self):
