@@ -15,14 +15,17 @@ class FeatureWidget(wx.Panel):
         self.feature = feature
         
         self.createControls()
+        self.addTooltips()
         self.setInitialValues()
         self.bindControls()
         self.setLayout()
+
+    def addTooltips(self):
+        pass
     
     def createControls(self):
-        print self.feature
         self.name = wx.StaticText(self,
-            label=self.annotation.name + ":: " + self.feature.name + \
+            label=self.annotation.name + "::" + self.feature.name + \
                   " (" + self.feature.ftype + ")")
         font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
         self.name.SetFont(font)
@@ -32,7 +35,7 @@ class FeatureWidget(wx.Panel):
     
     def bindControls(self):
         pass
-
+    
     def setLayout(self, extra_values=[]):
         def addToSizer(sizer, item, alignment=wx.ALL):
             sizer.Add(item, 0, alignment, 5)
@@ -51,17 +54,26 @@ class FeatureWidget(wx.Panel):
 
         self.SetSizer(self.sizer)
 
+#TODO: agregar marca como positivo o negativo dependiendo si el default
+#      value es correcto
+
 class DefaultValueFeatureWidget(FeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         self.default = str(feature.default)
         FeatureWidget.__init__(self, parent, an, annotation, feature, id)
-
+        self.changeValidator(self.is_valid())
+    
     def createControls(self):
         FeatureWidget.createControls(self)
 
         self.defaultLabel = wx.StaticText(self, label="Default value:")
         self.defaultInput = wx.TextCtrl(self, value=self.default,
                                         style=wx.TE_PROCESS_ENTER)
+        self.validValue = wx.StaticBitmap(self, id=wx.ID_ANY)
+    
+    def bindControls(self):
+        self.Bind(wx.EVT_TEXT, self.OnChangeDefault,
+                  id=self.defaultInput.GetId())
     
     def setLayout(self, extra_values=[]):
 
@@ -76,6 +88,7 @@ class DefaultValueFeatureWidget(FeatureWidget):
 
                (self.defaultSizer, self.defaultLabel),
                (self.defaultSizer, self.defaultInput),
+               (self.defaultSizer, self.validValue)
               ]
 
         for n in seq:
@@ -88,20 +101,86 @@ class DefaultValueFeatureWidget(FeatureWidget):
 
         self.SetSizer(self.sizer)
 
+    def OnChangeDefault(self, event):
+        pass
+
+    def changeValidator(self, value):
+        if value:
+            self.validValue.SetBitmap(wx.Bitmap(cwd() + '/media/add.png'))
+        else:
+            self.validValue.SetBitmap(wx.Bitmap(cwd() + '/media/remove.png'))
+    
+    def is_valid(self):
+        self.changeValidator(True)
+        return True
+
 class BoolFeatureWidget(DefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         DefaultValueFeatureWidget.__init__(self, parent, an, annotation,
                                            feature, id)
+
+    def addTooltips(self):
+        self.defaultLabel.SetToolTip(wx.ToolTip("Values: True, False"))
+        self.defaultInput.SetToolTip(self.defaultLabel.GetToolTip())
+    
+    def OnChangeDefault(self, event):
+
+        new_value = self.defaultInput.GetValue()
+        if not self.is_valid():
+            return
+        
+        if new_value.capitalize() == "True":
+            self.feature.default = True
+        elif new_value.capitalize() == "False":
+            self.feature.default = False
+
+    def is_valid(self):
+        new_value = self.defaultInput.GetValue().capitalize()
+        if new_value == "True" or new_value == "False":
+            self.changeValidator(True)
+            return True
+        self.changeValidator(False)
+        return False
 
 class StringFeatureWidget(DefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         DefaultValueFeatureWidget.__init__(self, parent, an, annotation,
                                            feature, id)
 
+    def OnChangeDefault(self, event):
+        self.feature.default = self.defaultInput.GetValue()
+
 class IntFeatureWidget(DefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         DefaultValueFeatureWidget.__init__(self, parent, an, annotation,
                                            feature, id)
+
+    def OnChangeDefault(self, event):
+        new_value = self.defaultInput.GetValue()
+        aux_value = ""
+        for ch in new_value:
+            if ch in "0123456789.,+-e":
+                aux_value += ch
+        
+        if new_value != aux_value:
+            self.defaultInput.SetValue(aux_value)
+        self.is_valid()
+    
+    def is_valid(self):
+        def is_number(s):
+            try:
+                i = float(s)
+            except ValueError, TypeError:
+                return False
+            return True
+        
+        new_value = self.defaultInput.GetValue().capitalize()
+        print new_value
+        if is_number(str(new_value)):
+            self.changeValidator(True)
+            return True
+        self.changeValidator(False)
+        return False
 
 widget_by_name = {"bool": BoolFeatureWidget,
                   "string": StringFeatureWidget,
