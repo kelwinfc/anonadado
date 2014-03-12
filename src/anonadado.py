@@ -49,16 +49,6 @@ class Anonadado(wx.Frame):
         
         pnl = wx.Panel(self, -1)
         
-        #menubar = wx.MenuBar()
-        #fileMenu = wx.Menu()
-        #load_domain = fileMenu.Append(wx.ID_OPEN, 'Load Domain', 'Load Domain')
-        #load_instance = fileMenu.Append(wx.ID_SAVE, 'Load Instance',
-                                        #'Load Instance')
-        #new_project = fileMenu.Append(wx.NewId(), 'New Project', 'New Project')
-        
-        #quit_item = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
-        #menubar.Append(fileMenu, '&File')
-        
         sizer = wx.BoxSizer(wx.VERTICAL)
         
         nestedNotebook = wx.Notebook(pnl, wx.NewId())
@@ -71,13 +61,6 @@ class Anonadado(wx.Frame):
         sizer.Add(nestedNotebook, 1, wx.ALL|wx.EXPAND, 5)
         
         pnl.SetSizer(sizer)
-        
-        #self.SetMenuBar(menubar)
-        
-        #self.Bind(wx.EVT_MENU, self.OnQuit, quit_item)
-        #self.Bind(wx.EVT_MENU, self.OnLoadDomain, load_domain)
-        #self.Bind(wx.EVT_MENU, self.OnLoadInstance, load_instance)
-        #self.Bind(wx.EVT_MENU, self.OnNewProject, new_project)
         
         self.SetTitle('Anonadado - Annotation Tool')
         self.Centre()
