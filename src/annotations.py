@@ -98,7 +98,6 @@ def get_class_by_type(t):
     return class_by_name.get(t, feature)
 
 class annotation:
-    
     def __init__(self, json):
         self.start = json.get("start", -1)
         self.end = json.get("end", -1)

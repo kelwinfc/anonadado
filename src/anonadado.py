@@ -10,6 +10,8 @@ import cv2.cv as cv
 import wx
 import os
 import wx.lib.agw.multidirdialog as MDD
+from anonadado_domain import DomainPanel
+from anonadado_instance import InstancePanel
 
 def parse_args(a):
     def check(i, a, n, s):
@@ -33,34 +35,6 @@ def parse_args(a):
     
     return d
 
-class DomainPanel(wx.Panel):
-    
-    def __init__(self, parent, an):
-        wx.Panel.__init__(self, parent=parent, id=wx.NewId())
-        self.top_app = an
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        open_domain = wx.BitmapButton(self, id=wx.ID_ANY,
-                                      bitmap=wx.Bitmap('media/open.png'),
-                                      pos=(10, 10))
-        
-        open_domain.Bind(wx.EVT_BUTTON, self.top_app.OnLoadDomain)
-        #txtOne = wx.TextCtrl(self, wx.ID_ANY, "")
-        #txtTwo = wx.TextCtrl(self, wx.ID_ANY, "")
-        
-        #sizer = wx.BoxSizer(wx.VERTICAL)
-        #sizer.Add(txtOne, 0, wx.ALL, 5)
-        #sizer.Add(txtTwo, 0, wx.ALL, 5)
-
-        self.SetSizer(sizer)
-
-class InstancePanel(wx.Panel):
-
-    def __init__(self, parent, an):
-        wx.Panel.__init__(self, parent=parent, id=wx.NewId())
-        self.top_app = an
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(sizer)
-
 class Anonadado(wx.Frame):
     
     def __init__(self, *args, **kw):
@@ -73,10 +47,8 @@ class Anonadado(wx.Frame):
     
     def InitUI(self):
         
-        pnl = wx.Panel(self)
-        #cbtn = wx.Button(pnl, label='Close', pos=(20, 30))
-        #cbtn.Bind(wx.EVT_BUTTON, self.OnClose)
-
+        pnl = wx.Panel(self, -1)
+        
         menubar = wx.MenuBar()
         fileMenu = wx.Menu()
         load_domain = fileMenu.Append(wx.ID_OPEN, 'Load Domain', 'Load Domain')
@@ -89,16 +61,16 @@ class Anonadado(wx.Frame):
         
         sizer = wx.BoxSizer(wx.VERTICAL)
         
-        nestedNotebook = wx.Notebook(self, wx.NewId())
-        domainTab = DomainPanel(nestedNotebook, self)
-        instanceTab = InstancePanel(nestedNotebook, self)
-        nestedNotebook.AddPage(domainTab, "Domain")
-        nestedNotebook.AddPage(instanceTab, "Instance")
+        nestedNotebook = wx.Notebook(pnl, wx.NewId())
+        self.domainTab = DomainPanel(nestedNotebook, self)
+        self.instanceTab = InstancePanel(nestedNotebook, self)
+        nestedNotebook.AddPage(self.domainTab, "Domain")
+        nestedNotebook.AddPage(self.instanceTab, "Instance")
         
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(nestedNotebook, 1, wx.ALL|wx.EXPAND, 5)
         
-        self.SetSizer(sizer)
+        pnl.SetSizer(sizer)
         
         self.SetMenuBar(menubar)
         
@@ -106,8 +78,8 @@ class Anonadado(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnLoadDomain, load_domain)
         self.Bind(wx.EVT_MENU, self.OnLoadInstance, load_instance)
         self.Bind(wx.EVT_MENU, self.OnNewProject, new_project)
-        
-        self.SetSize((250, 200))
+
+        #pnl.SetSize((250, 200))
         self.SetTitle('Anonadado')
         self.Centre()
         self.Show(True)
@@ -133,6 +105,7 @@ class Anonadado(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPaths()[0]
             self.am.parse_domain(path)
+            self.domainTab.load_domain()
         dlg.Destroy()
     
     def OnLoadInstance(self, e):
@@ -141,6 +114,12 @@ class Anonadado(wx.Frame):
             path = dlg.GetPaths()[0]
             self.am.parse_instance(path)
         dlg.Destroy()
+
+    def OnSaveDomain(self, e):
+        pass
+
+    def OnSaveInstance(self, e):
+        pass
     
     def OnNewProject(self, e):
         dial = wx.MessageDialog(None, 'Are you sure to create a new project? '\
@@ -150,6 +129,7 @@ class Anonadado(wx.Frame):
         r = dial.ShowModal()
         if r == wx.ID_YES:
             self.am = annotation_manager()
+            self.domainTab.load_domain()
         elif r == wx.ID_NO:
             pass
 
@@ -162,16 +142,19 @@ def main():
 
     am = annotation_manager()
 
-    if domain_filename is not None:
-        am.parse_domain(domain_filename)
-    if instance_filename is not None:
-        am.parse_instance(instance_filename)
     
     app = wx.App()
     a = Anonadado(None)
     a.setAnnotator(am)
-    app.MainLoop()
 
+    if domain_filename is not None:
+        am.parse_domain(domain_filename)
+        a.domainTab.load_domain()
+    if instance_filename is not None:
+        am.parse_instance(instance_filename)
+    
+    app.MainLoop()
+    
     if "out-domain" in dargs:
         f  = open(dargs["out-domain"], 'w')
         json.dump(am.domain_to_json(), f, indent = 4)
