@@ -106,7 +106,7 @@ class DefaultValueFeatureWidget(FeatureWidget):
 
     def changeValidator(self, value):
         if value:
-            self.validValue.SetBitmap(wx.Bitmap(cwd() + '/media/add.png'))
+            self.validValue.SetBitmap(wx.Bitmap(cwd() + '/media/ok.png'))
         else:
             self.validValue.SetBitmap(wx.Bitmap(cwd() + '/media/remove.png'))
     
@@ -175,7 +175,7 @@ class IntFeatureWidget(DefaultValueFeatureWidget):
             return True
         
         new_value = self.defaultInput.GetValue().capitalize()
-        print new_value
+        
         if is_number(str(new_value)):
             self.changeValidator(True)
             return True
@@ -216,6 +216,15 @@ class AnnotationWidget(wx.Panel):
                                                  (10, 10), style=wx.RB_GROUP)
         self.isUniqueButtonFalse = wx.RadioButton(self, -1, 'False', (10, 10))
 
+        # Add new feature form
+        self.addFeatureButton = \
+            wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
+                            bitmap=wx.Bitmap(cwd() + '/media/add.png'))
+        self.addFeatureLabel = wx.StaticText(self, label="New Feature:")
+        self.addFeatureInput = wx.TextCtrl(self, value="",
+                                         style=wx.TE_PROCESS_ENTER)
+        self.addFeatureType = wx.Choice(self, id=wx.ID_ANY,
+                                        choices=widget_by_name.keys())
         self.removeButton = \
             wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
                             bitmap=wx.Bitmap(cwd() + '/media/remove.png'),
@@ -245,6 +254,7 @@ class AnnotationWidget(wx.Panel):
         self.isUniqueButtonTrue.Bind(wx.EVT_RADIOBUTTON, self.SetUnique)
         self.isUniqueButtonFalse.Bind(wx.EVT_RADIOBUTTON, self.SetUnique)
         self.removeButton.Bind(wx.EVT_BUTTON, self.top_app.OnRemoveLabel)
+        self.addFeatureButton.Bind(wx.EVT_BUTTON, self.OnAddFeature)
     
     def setLayout(self):
         def addToSizer(sizer, item, alignment=wx.ALL):
@@ -255,20 +265,27 @@ class AnnotationWidget(wx.Panel):
         self.globalSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.uniqueSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.commandSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.addFeatureSizer = wx.BoxSizer(wx.HORIZONTAL)
         
         seq = [ (self.sizer, self.removeButton, wx.ALIGN_RIGHT),
                 (self.sizer, self.name, wx.ALIGN_CENTER),
                 (self.sizer, self.formSizer, wx.CENTER),
                 (self.formSizer, self.globalSizer, wx.CENTER),
                 (self.formSizer, self.uniqueSizer),
+                (self.sizer, self.addFeatureSizer),
                 
                 (self.globalSizer, self.isGlobalButtonLabel),
                 (self.globalSizer, self.isGlobalButtonTrue),
                 (self.globalSizer, self.isGlobalButtonFalse),
-
+                
                 (self.uniqueSizer, self.isUniqueButtonLabel),
                 (self.uniqueSizer, self.isUniqueButtonTrue),
-                (self.uniqueSizer, self.isUniqueButtonFalse)
+                (self.uniqueSizer, self.isUniqueButtonFalse),
+                
+                (self.addFeatureSizer, self.addFeatureLabel),
+                (self.addFeatureSizer, self.addFeatureInput),
+                (self.addFeatureSizer, self.addFeatureType),
+                (self.addFeatureSizer, self.addFeatureButton),
               ]
 
         for f in self.features:
@@ -284,6 +301,20 @@ class AnnotationWidget(wx.Panel):
         
         self.SetSizer(self.sizer)
 
+    def OnAddFeature(self, event):
+        s = self.addFeatureInput.GetValue()
+        type_name = self.addFeatureType.GetString(
+                            self.addFeatureType.GetSelection())
+        
+        if s != "" and filter(lambda x : x.name == s,
+                              self.annotation.features) == []:
+            f = get_class_by_type(type_name)({"name":s, "type":type_name})
+            self.annotation.features.append(f)
+            self.add_feature(f)
+
+        selected_label = self.top_app.domainTab.domainLabelsList.GetSelection()
+        self.top_app.domainTab.select_label(selected_label)
+    
     def OnFeatureSelect(self, event):
         pass
     
@@ -321,15 +352,6 @@ class DomainPanel(wx.Panel):
                                            wx.LB_SINGLE|wx.EXPAND)
         self.domainLabelsList.SetSelection(0)
         
-        # List of label features
-        self.domainFeaturesLabel = \
-            wx.StaticText(self, wx.ID_ANY, "Domain labels")
-        self.domainFeaturesList = \
-            wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition, (200, 300), [],
-                       wx.LB_SINGLE|wx.EXPAND)
-        
-        self.domainFeaturesList.SetSelection(0)
-        
         # Global commands (Load, Save, New, ...)
         self.newDomainButton = wx.BitmapButton(self, id=wx.ID_ANY,
           bitmap=wx.Bitmap(cwd() + '/media/new.png'), style=wx.NO_BORDER,
@@ -355,7 +377,6 @@ class DomainPanel(wx.Panel):
         self.addLabelInput.Bind(wx.EVT_TEXT_ENTER, self.OnAddLabel)
         self.addLabelButton.Bind(wx.EVT_BUTTON, self.OnAddLabel)
         self.domainLabelsList.Bind(wx.EVT_LISTBOX, self.OnLabelSelect)
-        self.domainFeaturesList.Bind(wx.EVT_LISTBOX, self.OnFeatureSelect)
         
         self.newDomainButton.Bind(wx.EVT_BUTTON, self.top_app.OnNewProject)
         self.openDomainButton.Bind(wx.EVT_BUTTON, self.top_app.OnLoadDomain)
@@ -395,11 +416,7 @@ class DomainPanel(wx.Panel):
 
                # List of labels
                (self.labels_sizer, self.domainLabelsLabel),
-               (self.labels_sizer, self.domainLabelsList),
-
-               # List of Features
-               (self.features_sizer, self.domainFeaturesLabel),
-               (self.features_sizer, self.domainFeaturesList)
+               (self.labels_sizer, self.domainLabelsList)
               ] + \
               ([(self.right_sizer, self.annotationWidget)]
                   if (self.annotationWidget is not None) else [])
@@ -419,11 +436,6 @@ class DomainPanel(wx.Panel):
     def OnLabelSelect(self, event):
         index = event.GetSelection()
         self.select_label(index)
-    
-    def OnFeatureSelect(self, event):
-        index = event.GetSelection()
-        self.select_label(index)
-        print "Feature:", index
     
     def OnAddLabel(self, event):
         name = self.addLabelInput.GetValue()
