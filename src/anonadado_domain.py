@@ -210,8 +210,12 @@ class ChoiceFeatureWidget(DefaultValueFeatureWidget):
         self.addChoiceInput = wx.TextCtrl(self, value="",
                                          style=wx.TE_PROCESS_ENTER)
         self.ChoiceLabel = wx.StaticText(self, label="Values:")
-        self.ChoiceList = wx.Choice(self, id=wx.ID_ANY,
-                                    choices=self.choices)
+        self.ChoiceList = wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition,
+                                     (150, 100), self.choices,
+                                     wx.LB_SINGLE|wx.EXPAND)
+
+        #wx.Choice(self, id=wx.ID_ANY,
+                                    #choices=self.choices)
     
     def bindControls(self):
         self.addChoiceButton.Bind(wx.EVT_BUTTON, self.OnAddChoice)
@@ -223,21 +227,31 @@ class ChoiceFeatureWidget(DefaultValueFeatureWidget):
             sizer.Add(item, 0, alignment, 5)
         
         self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.subSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.subLeftSizer = wx.BoxSizer(wx.VERTICAL)
+        self.subRightSizer = wx.BoxSizer(wx.VERTICAL)
         self.defaultSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.choicesSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.listSizer = wx.BoxSizer(wx.HORIZONTAL)
         
         seq = [(self.sizer, self.name),
-               (self.sizer, self.defaultSizer),
-               (self.sizer, self.choicesSizer),
-                              
+               (self.sizer, self.subSizer),
+               
+               (self.subSizer, self.subLeftSizer),
+               (self.subSizer, self.subRightSizer),
+               (self.subLeftSizer, self.defaultSizer),
+               (self.subLeftSizer, self.choicesSizer),
+               (self.subRightSizer, self.listSizer),
+               
                (self.defaultSizer, self.defaultLabel),
                (self.defaultSizer, self.defaultInput),
                
                (self.choicesSizer, self.addChoiceLabel),
                (self.choicesSizer, self.addChoiceInput),
                (self.choicesSizer, self.addChoiceButton),
-               (self.choicesSizer, self.ChoiceLabel),
-               (self.choicesSizer, self.ChoiceList),
+               
+               (self.listSizer, self.ChoiceLabel),
+               (self.listSizer, self.ChoiceList),
               ]
         
         for n in seq:
@@ -275,7 +289,7 @@ widget_by_name = {"bool": BoolFeatureWidget,
 
 class AnnotationWidget(scrolled.ScrolledPanel):
     def __init__(self, parent, an, annotation, id):
-        scrolled.ScrolledPanel.__init__(self, parent, id, size=(500,440),
+        scrolled.ScrolledPanel.__init__(self, parent, id, size=(700,440),
                                         style=wx.ALWAYS_SHOW_SB)
         self.SetBestSize()
         self.SetAutoLayout(1)
