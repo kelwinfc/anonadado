@@ -183,10 +183,94 @@ class IntFeatureWidget(DefaultValueFeatureWidget):
         self.changeValidator(False)
         return False
 
+class ChoiceFeatureWidget(DefaultValueFeatureWidget):
+    def __init__(self, parent, an, annotation, feature, id):
+        self.choices = feature.values
+        DefaultValueFeatureWidget.__init__(self, parent, an, annotation,
+                                           feature, id)
+    
+    def createControls(self):
+        DefaultValueFeatureWidget.createControls(self)
+
+        self.defaultInput.Hide()
+        self.defaultInput = wx.Choice(self, id=wx.ID_ANY,
+                                    choices=self.choices)
+
+        for idx, x in enumerate(self.choices):
+            if x == self.feature.default:
+                self.defaultInput.SetSelection(idx)
+                break
+        
+        self.validValue.Hide()
+        
+        self.addChoiceButton = \
+            wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
+                            bitmap=wx.Bitmap(cwd() + '/media/add.png'))
+        self.addChoiceLabel = wx.StaticText(self, label="New value:")
+        self.addChoiceInput = wx.TextCtrl(self, value="",
+                                         style=wx.TE_PROCESS_ENTER)
+        self.ChoiceLabel = wx.StaticText(self, label="Values:")
+        self.ChoiceList = wx.Choice(self, id=wx.ID_ANY,
+                                    choices=self.choices)
+    
+    def bindControls(self):
+        self.addChoiceButton.Bind(wx.EVT_BUTTON, self.OnAddChoice)
+        self.addChoiceInput.Bind(wx.EVT_TEXT_ENTER, self.OnAddChoice)
+        self.defaultInput.Bind(wx.EVT_CHOICE, self.OnChangeDefault)
+    
+    def setLayout(self, extra_values=[]):
+        def addToSizer(sizer, item, alignment=wx.ALL):
+            sizer.Add(item, 0, alignment, 5)
+        
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.defaultSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.choicesSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        seq = [(self.sizer, self.name),
+               (self.sizer, self.defaultSizer),
+               (self.sizer, self.choicesSizer),
+                              
+               (self.defaultSizer, self.defaultLabel),
+               (self.defaultSizer, self.defaultInput),
+               
+               (self.choicesSizer, self.addChoiceLabel),
+               (self.choicesSizer, self.addChoiceInput),
+               (self.choicesSizer, self.addChoiceButton),
+               (self.choicesSizer, self.ChoiceLabel),
+               (self.choicesSizer, self.ChoiceList),
+              ]
+        
+        for n in seq:
+            a = wx.ALL
+            s = n[0]
+            i = n[1]
+            if len(n) == 3:
+                a = n[2]
+            addToSizer(s, i, a)
+
+        self.SetSizer(self.sizer)
+
+    def OnAddChoice(self, event):
+        s = self.addChoiceInput.GetValue()
+        print s
+        
+        if not s in self.choices:
+            self.feature.values.append(s)
+
+            selected_label = \
+                self.top_app.domainTab.domainLabelsList.GetSelection()
+            self.top_app.domainTab.select_label(selected_label)
+            self.Layout()
+    
+    def OnChangeDefault(self, event):
+        name = self.defaultInput.GetStringSelection()
+        self.feature.default = name
+        print self.feature.default
+
 widget_by_name = {"bool": BoolFeatureWidget,
                   "string": StringFeatureWidget,
                   "int": IntFeatureWidget,
-                  "choice": FeatureWidget
+                  "choice": ChoiceFeatureWidget
                 }
 
 class AnnotationWidget(scrolled.ScrolledPanel):
@@ -237,9 +321,8 @@ class AnnotationWidget(scrolled.ScrolledPanel):
                             pos=(10,10))
         # Features
         self.features = []
-        for _ in range(10):
-            for f in self.annotation.features:
-                self.add_feature(f)
+        for f in self.annotation.features:
+            self.add_feature(f)
 
     def add_feature(self, f):
         nf = widget_by_name[f.ftype](self, self.top_app, self.annotation, f,
