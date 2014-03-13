@@ -5,6 +5,7 @@ import json
 from os import getcwd as cwd
 from annotations import *
 import wx
+import wx.lib.scrolledpanel as scrolled
 
 class FeatureWidget(wx.Panel):
     def __init__(self, parent, an, annotation, feature, id):
@@ -188,9 +189,14 @@ widget_by_name = {"bool": BoolFeatureWidget,
                   "choice": FeatureWidget
                 }
 
-class AnnotationWidget(wx.Panel):
+class AnnotationWidget(scrolled.ScrolledPanel):
     def __init__(self, parent, an, annotation, id):
-        wx.Panel.__init__(self, parent, id, style=wx.SUNKEN_BORDER)
+        scrolled.ScrolledPanel.__init__(self, parent, id, size=(500,440),
+                                        style=wx.ALWAYS_SHOW_SB)
+        self.SetBestSize()
+        self.SetAutoLayout(1)
+        self.SetupScrolling()
+        
         self.top_app = an
         self.annotation = annotation
         self.createControls()
@@ -231,8 +237,9 @@ class AnnotationWidget(wx.Panel):
                             pos=(10,10))
         # Features
         self.features = []
-        for f in self.annotation.features:
-            self.add_feature(f)
+        for _ in range(10):
+            for f in self.annotation.features:
+                self.add_feature(f)
 
     def add_feature(self, f):
         nf = widget_by_name[f.ftype](self, self.top_app, self.annotation, f,
@@ -301,6 +308,7 @@ class AnnotationWidget(wx.Panel):
             addToSizer(s, i, a)
         
         self.SetSizer(self.sizer)
+        self.SetupScrolling()
 
     def OnAddFeature(self, event):
         s = self.addFeatureInput.GetValue()
@@ -315,6 +323,8 @@ class AnnotationWidget(wx.Panel):
 
         selected_label = self.top_app.domainTab.domainLabelsList.GetSelection()
         self.top_app.domainTab.select_label(selected_label)
+        self.Layout()
+        self.SetupScrolling()
     
     def OnFeatureSelect(self, event):
         pass
