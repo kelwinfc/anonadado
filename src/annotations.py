@@ -79,11 +79,12 @@ class choice_feature(feature):
             ret["values"] = self.values
         return ret
 
+    def get_instance(self):
+        return choice_feature(self.to_json())
+
 class bbox_feature(feature):
     def __init__(self, json):
         feature.__init__(self, json, 0)
-        self.upper_left = json.get("upper_left",None)
-        self.lower_right = json.get("lower_right",None)
     
     def get_instance(self):
         return int_feature(self.to_json())
@@ -91,7 +92,8 @@ class bbox_feature(feature):
 class_by_name = {"bool": bool_feature,
                  "string": str_feature,
                  "int": int_feature,
-                 "choice": choice_feature
+                 "choice": choice_feature,
+                 "bbox": bbox_feature
                 }
 
 def get_class_by_type(t):

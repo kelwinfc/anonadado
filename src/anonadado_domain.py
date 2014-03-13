@@ -5,7 +5,8 @@ import json
 from os import getcwd as cwd
 from annotations import *
 import wx
-import wx.lib.scrolledpanel as scrolled
+import wx.lib.scrolledpanel as wxScrolled
+import wx.lib.intctrl as wxIntctrl
 
 class FeatureWidget(wx.Panel):
     def __init__(self, parent, an, annotation, feature, id):
@@ -281,10 +282,19 @@ class ChoiceFeatureWidget(DefaultValueFeatureWidget):
         self.feature.default = name
         print self.feature.default
 
+class BoundingBoxFeatureWidget(DefaultValueFeatureWidget):
+    def __init__(self, parent, an, annotation, feature, id):
+        DefaultValueFeatureWidget.__init__(self, parent, an, annotation,
+                                           feature, id)
+    
+    def OnChangeDefault(self, event):
+        pass
+
 widget_by_name = {"bool": BoolFeatureWidget,
                   "string": StringFeatureWidget,
                   "int": IntFeatureWidget,
-                  "choice": ChoiceFeatureWidget
+                  "choice": ChoiceFeatureWidget,
+                  "bbox": BoundingBoxFeatureWidget
                 }
 
 class AnnotationWidget(scrolled.ScrolledPanel):

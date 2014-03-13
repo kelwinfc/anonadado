@@ -9,6 +9,11 @@
           "features" :
           [
               {
+                  "name" : "roi",
+                  "type" : "bbox",
+                  "default" : [[1,2],[3,4]]
+              },
+              {
                   "name" : "value",
                   "type" : "bool",
                   "default" : true
