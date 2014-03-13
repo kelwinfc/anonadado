@@ -103,7 +103,7 @@ class DefaultValueFeatureWidget(FeatureWidget):
 
     def OnChangeDefault(self, event):
         pass
-
+    
     def changeValidator(self, value):
         if value:
             self.validValue.SetBitmap(wx.Bitmap(cwd() + '/media/ok.png'))
@@ -255,6 +255,7 @@ class AnnotationWidget(wx.Panel):
         self.isUniqueButtonFalse.Bind(wx.EVT_RADIOBUTTON, self.SetUnique)
         self.removeButton.Bind(wx.EVT_BUTTON, self.top_app.OnRemoveLabel)
         self.addFeatureButton.Bind(wx.EVT_BUTTON, self.OnAddFeature)
+        self.addFeatureInput.Bind(wx.EVT_TEXT_ENTER, self.OnAddFeature)
     
     def setLayout(self):
         def addToSizer(sizer, item, alignment=wx.ALL):
