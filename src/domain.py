@@ -177,6 +177,10 @@ class DomainPanel(wx.Panel):
     
     def createControls(self):
 
+        # Domain name
+        self.domainNameLabel = wx.StaticText(self, label="Domain name:")
+        self.domainNameInput = wx.TextCtrl(self)
+        
         # Add Label Form
         self.addLabelButton = \
             wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
@@ -222,25 +226,29 @@ class DomainPanel(wx.Panel):
         self.newDomainButton.Bind(wx.EVT_BUTTON, self.top_app.OnNewProject)
         self.openDomainButton.Bind(wx.EVT_BUTTON, self.top_app.OnLoadDomain)
         self.saveDomainButton.Bind(wx.EVT_BUTTON, self.top_app.OnSaveDomain)
+
+        self.domainNameInput.Bind(wx.EVT_TEXT, self.OnChangeDomainName)
     
     def setLayout(self):
         def addToSizer(sizer, item, alignment=wx.ALL):
             sizer.Add(item, 0, alignment, 5)
         
-        self.sizer = wx.BoxSizer(wx.HORIZONTAL)          # Global
-        self.left_sizer = wx.BoxSizer(wx.VERTICAL)       # Left bar
-        self.right_sizer = wx.BoxSizer(wx.VERTICAL)      # Right bar
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)           # Global
+        self.left_sizer = wx.BoxSizer(wx.VERTICAL)        # Left bar
+        self.right_sizer = wx.BoxSizer(wx.VERTICAL)       # Right bar
         
-        self.form_sizer = wx.BoxSizer(wx.HORIZONTAL)     # Add label form
-        self.labels_sizer = wx.BoxSizer(wx.VERTICAL)     # List of labels
-        self.features_sizer = wx.BoxSizer(wx.VERTICAL)   # List of features
-        self.commands_sizer = wx.BoxSizer(wx.HORIZONTAL) # Commands
+        self.form_sizer = wx.BoxSizer(wx.HORIZONTAL)      # Add label form
+        self.labels_sizer = wx.BoxSizer(wx.VERTICAL)      # List of labels
+        self.features_sizer = wx.BoxSizer(wx.VERTICAL)    # List of features
+        self.commands_sizer = wx.BoxSizer(wx.HORIZONTAL)  # Commands
+        self.domainNameSizer = wx.BoxSizer(wx.HORIZONTAL) # Domain name
         
         seq = [
                # Skeleton
                (self.sizer, self.left_sizer),
                (self.sizer, self.right_sizer),
                (self.left_sizer, self.commands_sizer, wx.CENTER),
+               (self.left_sizer, self.domainNameSizer),
                (self.left_sizer, self.form_sizer, wx.CENTER),
                (self.left_sizer, self.labels_sizer),
                (self.left_sizer, self.features_sizer),
@@ -249,7 +257,11 @@ class DomainPanel(wx.Panel):
                (self.commands_sizer, self.newDomainButton),
                (self.commands_sizer, self.openDomainButton),
                (self.commands_sizer, self.saveDomainButton),
-               
+
+               # Domain name
+               (self.domainNameSizer, self.domainNameLabel),
+               (self.domainNameSizer, self.domainNameInput),
+        
                # Add Label Form
                (self.form_sizer, self.addLabelLabel),
                (self.form_sizer, self.addLabelInput),
@@ -272,6 +284,10 @@ class DomainPanel(wx.Panel):
         
         self.SetSizer(self.sizer)
         self.load_domain()
+
+    def OnChangeDomainName(self, event):
+        if self.top_app.am is not None:
+            self.top_app.am.domain_name = self.domainNameInput.GetValue()
     
     def OnLabelSelect(self, event):
         index = event.GetSelection()
@@ -316,3 +332,4 @@ class DomainPanel(wx.Panel):
                 self.domainLabelsList.Append(k)
                 if k == 0:
                     self.select_label(0)
+            self.domainNameInput.SetValue( self.top_app.am.domain_name )
