@@ -93,6 +93,9 @@ class Anonadado(wx.Frame):
         dlg.Destroy()
 
         os.chdir(previous_directory)
+
+        if len(self.am.domain.keys()) > 0:
+            self.domainTab.select_label(0)
     
     def OnLoadInstance(self, e):
         previous_directory = os.getcwd()
@@ -135,8 +138,8 @@ class Anonadado(wx.Frame):
         r = dial.ShowModal()
 
         if r == wx.ID_YES:
-            selected_annotation = self.domainTab.domainLabelsList.GetSelection()
-            name = self.domainTab.domainLabelsList.GetString(selected_annotation)
+            sannotation = self.domainTab.domainLabelsList.GetSelection()
+            name = self.domainTab.domainLabelsList.GetString(sannotation)
             self.am.domain.pop(name, None)
             self.domainTab.load_domain()
         elif r == wx.ID_NO:
@@ -159,6 +162,9 @@ def main():
     if domain_filename is not None:
         am.parse_domain(domain_filename)
         a.domainTab.load_domain()
+        if len(a.am.domain.keys()) > 0:
+            a.domainTab.select_label(0)
+    
     if instance_filename is not None:
         am.parse_instance(instance_filename)
     

@@ -38,7 +38,7 @@ class FeatureWidget(wx.Panel):
                   " (" + self.feature.ftype + ")")
         font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
         self.name.SetFont(font)
-
+        
         self.removeButton = \
             wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
                             bitmap=wx.Bitmap(cwd() + '/media/remove.png'),
@@ -628,7 +628,6 @@ class DomainPanel(wx.Panel):
             if len(n) == 3:
                 a = n[2]
             addToSizer(s, i, a)
-
         
         self.SetSizer(self.sizer)
         self.load_domain()
