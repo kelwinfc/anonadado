@@ -34,7 +34,8 @@ class FeatureWidget(wx.Panel):
     
     def createControls(self):
         self.name = wx.StaticText(self,
-            label=self.annotation.name + "::" + self.feature.name + \
+            label="[" + str(self.get_feature_index()) + "] " + \
+                  self.annotation.name + "::" + self.feature.name + \
                   " (" + self.feature.ftype + ")")
         font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
         self.name.SetFont(font)
@@ -458,7 +459,7 @@ widget_by_name = {"bool": BoolFeatureWidget,
 
 class AnnotationWidget(scrolled.ScrolledPanel):
     def __init__(self, parent, an, annotation, id):
-        scrolled.ScrolledPanel.__init__(self, parent, id, size=(700,440),
+        scrolled.ScrolledPanel.__init__(self, parent, id, size=(1200,640),
                                         style=wx.ALWAYS_SHOW_SB)
         self.SetBestSize()
         self.SetAutoLayout(1)
@@ -535,18 +536,19 @@ class AnnotationWidget(scrolled.ScrolledPanel):
             sizer.Add(item, 0, alignment, 5)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.formSizer = wx.GridSizer(rows=2, cols=2, hgap=20, vgap=5)
+        self.topSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.globalSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.uniqueSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.commandSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.addFeatureSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.featuresSizer = wx.GridSizer(rows=len(self.features)/2+1,
+                                          cols=2, hgap=20, vgap=5)
         
         seq = [ (self.sizer, self.removeButton, wx.ALIGN_RIGHT),
-                (self.sizer, self.name, wx.ALIGN_CENTER),
-                (self.sizer, self.formSizer, wx.CENTER),
-                (self.formSizer, self.globalSizer, wx.CENTER),
-                (self.formSizer, self.uniqueSizer),
+                (self.sizer, self.name, wx.ALIGN_LEFT),
+                
                 (self.sizer, self.addFeatureSizer),
+                (self.sizer, self.featuresSizer),
                 
                 (self.globalSizer, self.isGlobalButtonLabel),
                 (self.globalSizer, self.isGlobalButtonTrue),
@@ -560,10 +562,13 @@ class AnnotationWidget(scrolled.ScrolledPanel):
                 (self.addFeatureSizer, self.addFeatureInput),
                 (self.addFeatureSizer, self.addFeatureType),
                 (self.addFeatureSizer, self.addFeatureButton),
+
+                (self.addFeatureSizer, self.globalSizer, wx.CENTER),
+                (self.addFeatureSizer, self.uniqueSizer),
               ]
 
         for f in self.features:
-            seq.append( (self.sizer, f) )
+            seq.append( (self.featuresSizer, f) )
         
         for n in seq:
             a = wx.ALL
@@ -625,7 +630,7 @@ class DomainPanel(wx.Panel):
         self.domainLabelsLabel = wx.StaticText(self, wx.ID_ANY,
                                                "Domain labels")
         self.domainLabelsList = wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition,
-                                           (200, 300), [],
+                                           (200, 450), [],
                                            wx.LB_SINGLE|wx.EXPAND)
         self.domainLabelsList.SetSelection(0)
         
@@ -720,7 +725,11 @@ class DomainPanel(wx.Panel):
             self.load_domain()
     
     def select_label(self, index):
+        if index is None:
+            index = 0
+        
         if index >= 0 and self.domainLabelsList.GetString(index) != "":
+            
             label_name = self.domainLabelsList.GetString(index)
             
             if self.annotationWidget is not None:
@@ -746,3 +755,5 @@ class DomainPanel(wx.Panel):
         if self.top_app.am is not None:
             for k in self.top_app.am.domain.keys():
                 self.domainLabelsList.Append(k)
+                if k == 0:
+                    self.select_label(0)
