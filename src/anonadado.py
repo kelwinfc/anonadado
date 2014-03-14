@@ -79,12 +79,10 @@ class Anonadado(wx.Frame):
                              defaultFile = "",
                              wildcard = "Json (*.json)|*.json|" \
                                         "All files (*.*)|*.*",
-                             style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                             style=wx.OPEN
                             )
     
     def OnLoadDomain(self, e):
-        previous_directory = os.getcwd()
-        
         dlg = self.get_file_dialog()
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPaths()[0]
@@ -92,31 +90,36 @@ class Anonadado(wx.Frame):
             self.domainTab.load_domain()
         dlg.Destroy()
 
-        os.chdir(previous_directory)
-
         if len(self.am.domain.keys()) > 0:
             self.domainTab.select_label(0)
     
     def OnLoadInstance(self, e):
-        previous_directory = os.getcwd()
-        
         dlg = self.get_file_dialog()
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPaths()[0]
             self.am.parse_instance(path)
         dlg.Destroy()
-
-        os.chdir(previous_directory)
     
     def OnSaveDomain(self, e):
-        previous_directory = os.getcwd()
-        pass
-        os.chdir(previous_directory)
+        dlg = wx.FileDialog(self, message = "Save domain",
+                            defaultDir = os.getcwd(),
+                            defaultFile = "",
+                            wildcard = "Json (*.json)|*.json|" \
+                                       "All files (*.*)|*.*",
+                            style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT
+                           )
+        
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPaths()[0]
+
+            f  = open(path, 'w')
+            json.dump(self.am.domain_to_json(), f, indent = 4)
+            f.close()
+        
+        dlg.Destroy()
 
     def OnSaveInstance(self, e):
-        previous_directory = os.getcwd()
         pass
-        os.chdir(previous_directory)
     
     def OnNewProject(self, e):
         dial = wx.MessageDialog(None, 'Are you sure to create a new project? '\
@@ -173,10 +176,12 @@ def main():
     if "out-domain" in dargs:
         f  = open(dargs["out-domain"], 'w')
         json.dump(am.domain_to_json(), f, indent = 4)
-
+        f.close()
+    
     if "out-instance" in dargs:
         f  = open(dargs["out-instance"], 'w')
         json.dump(am.instance_to_json(), f, indent = 4)
+        f.close()
 
 if __name__ == '__main__':
     main()
