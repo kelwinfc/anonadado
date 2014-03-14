@@ -289,9 +289,6 @@ class ChoiceFeatureWidget(DefaultValueFeatureWidget):
         self.ChoiceList = wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition,
                                      (150, 100), self.choices,
                                      wx.LB_SINGLE|wx.EXPAND)
-
-        #wx.Choice(self, id=wx.ID_ANY,
-                                    #choices=self.choices)
     
     def bindControls(self):
         DefaultValueFeatureWidget.bindControls(self)
@@ -369,8 +366,88 @@ class BoundingBoxFeatureWidget(DefaultValueFeatureWidget):
         DefaultValueFeatureWidget.__init__(self, parent, an, annotation,
                                            feature, id)
     
+    def createControls(self):
+        DefaultValueFeatureWidget.createControls(self)
+
+        self.defaultInput.Hide()
+        self.defaultLabel.Hide()
+        self.validValue.Hide()
+        
+        self.UpperLeftLabel = wx.StaticText(self, label="Upper Left:  ")
+        self.LowerRightLabel = wx.StaticText(self, label="Lower Right:")
+        
+        self.UpperLeftXLabel = wx.StaticText(self, label="X")
+        self.UpperLeftYLabel = wx.StaticText(self, label="Y")
+        self.LowerRightXLabel = wx.StaticText(self, label="X")
+        self.LowerRightYLabel = wx.StaticText(self, label="Y")
+        
+        self.UpperLeftXInput = intctrl.IntCtrl(self, size=( 50, -1 ))
+        self.UpperLeftYInput = intctrl.IntCtrl(self, size=( 50, -1 ))
+        self.LowerRightXInput = intctrl.IntCtrl(self, size=( 50, -1 ))
+        self.LowerRightYInput = intctrl.IntCtrl(self, size=( 50, -1 ))
+        
+        self.UpperLeftXInput.SetValue(self.feature.default[0][0])
+        self.UpperLeftYInput.SetValue(self.feature.default[0][1])
+        self.LowerRightXInput.SetValue(self.feature.default[1][0])
+        self.LowerRightYInput.SetValue(self.feature.default[1][1])
+    
+    def setLayout(self, extra_values=[]):
+        def addToSizer(sizer, item, alignment=wx.ALL):
+            sizer.Add(item, 0, alignment, 5)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.nameSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.ulSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.lrSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        seq = [(self.sizer, self.nameSizer),
+               (self.sizer, self.ulSizer),
+               (self.sizer, self.lrSizer),
+               
+               (self.nameSizer, self.name),
+               (self.nameSizer, self.removeButton),
+               (self.nameSizer, self.moveDownButton),
+               (self.nameSizer, self.moveUpButton),
+               
+               (self.ulSizer, self.UpperLeftLabel),
+               (self.ulSizer, self.UpperLeftXLabel),
+               (self.ulSizer, self.UpperLeftXInput),
+               (self.ulSizer, self.UpperLeftYLabel),
+               (self.ulSizer, self.UpperLeftYInput),
+
+               (self.lrSizer, self.LowerRightLabel),
+               (self.lrSizer, self.LowerRightXLabel),
+               (self.lrSizer, self.LowerRightXInput),
+               (self.lrSizer, self.LowerRightYLabel),
+               (self.lrSizer, self.LowerRightYInput),
+              ]
+
+        for n in seq:
+            a = wx.ALL
+            s = n[0]
+            i = n[1]
+            if len(n) == 3:
+                a = n[2]
+            addToSizer(s, i, a)
+
+        self.SetSizer(self.sizer)
+    
+    def bindControls(self):
+        DefaultValueFeatureWidget.bindControls(self)
+        self.UpperLeftXInput.Bind(intctrl.EVT_INT, self.OnChangeDefault)
+        self.UpperLeftYInput.Bind(intctrl.EVT_INT, self.OnChangeDefault)
+        self.LowerRightXInput.Bind(intctrl.EVT_INT, self.OnChangeDefault)
+        self.LowerRightYInput.Bind(intctrl.EVT_INT, self.OnChangeDefault)
+    
     def OnChangeDefault(self, event):
-        pass
+        v = [[self.UpperLeftXInput, self.UpperLeftYInput],
+             [self.LowerRightXInput, self.LowerRightYInput]
+            ]
+        for x in range(2):
+            for y in range(2):
+                if v[x][y].GetValue() < 0:
+                    v[x][y].SetValue(-v[x][y].GetValue())
+                self.feature.default[x][y] = v[x][y].GetValue()
 
 widget_by_name = {"bool": BoolFeatureWidget,
                   "string": StringFeatureWidget,
