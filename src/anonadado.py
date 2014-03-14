@@ -10,8 +10,8 @@ import cv2.cv as cv
 import wx
 import os
 import wx.lib.agw.multidirdialog as MDD
-from anonadado_domain import DomainPanel
-from anonadado_instance import InstancePanel
+from domain import DomainPanel
+from instance import InstancePanel
 
 def parse_args(a):
     def check(i, a, n, s):
