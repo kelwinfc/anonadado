@@ -13,7 +13,8 @@ widget_by_name = {"bool": BoolFeatureWidget,
                   "string": StringFeatureWidget,
                   "int": IntFeatureWidget,
                   "choice": ChoiceFeatureWidget,
-                  "bbox": BoundingBoxFeatureWidget
+                  "bbox": BoundingBoxFeatureWidget,
+                  "vector": VectorFeatureWidget,
                 }
 
 class AnnotationWidget(scrolled.ScrolledPanel):

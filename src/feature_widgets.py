@@ -391,7 +391,7 @@ class BoundingBoxFeatureWidget(DefaultValueFeatureWidget):
         self.LowerRightXInput.SetValue(self.feature.default[1][0])
         self.LowerRightYInput.SetValue(self.feature.default[1][1])
 
-    def setLayout(self, extra_values=[]):
+    def setLayout(self):
         def addToSizer(sizer, item, alignment=wx.ALL):
             sizer.Add(item, 0, alignment, 5)
 
@@ -448,3 +448,13 @@ class BoundingBoxFeatureWidget(DefaultValueFeatureWidget):
                 if v[x][y].GetValue() < 0:
                     v[x][y].SetValue(-v[x][y].GetValue())
                 self.feature.default[x][y] = v[x][y].GetValue()
+
+class VectorFeatureWidget(BoundingBoxFeatureWidget):
+    def __init__(self, parent, an, annotation, feature, id):
+        BoundingBoxFeatureWidget.__init__(self, parent, an, annotation,
+                                           feature, id)
+
+    def createControls(self):
+        BoundingBoxFeatureWidget.createControls(self)
+        self.UpperLeftLabel.SetLabel("Start:")
+        self.LowerRightLabel.SetLabel("End:  ")
