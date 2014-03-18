@@ -3,13 +3,14 @@
 
 import sys
 import json
-from annotations import *
 import numpy as np
-import cv2
-import cv2.cv as cv
+import cv
+#import cv2.cv as cv
 import wx
 import os
 import wx.lib.agw.multidirdialog as MDD
+
+from annotations import *
 from domain import DomainPanel
 from instance import InstancePanel
 
@@ -133,6 +134,9 @@ class Anonadado(wx.Frame):
         elif r == wx.ID_NO:
             pass
     
+    def OnNewInstance(self, e):
+        pass
+    
     # TODO: remove occurences of this label in the instance
     def OnRemoveLabel(self, e):
         dial = wx.MessageDialog(None, 'Are you sure to remove this label?',
@@ -164,8 +168,6 @@ def main():
     if domain_filename is not None:
         am.parse_domain(domain_filename)
         a.domainTab.load_domain()
-        if len(a.am.domain.keys()) > 0:
-            a.domainTab.select_label(0)
     
     if instance_filename is not None:
         am.parse_instance(instance_filename)
@@ -183,26 +185,28 @@ def main():
         f.close()
 
 if __name__ == '__main__':
+
+    #cap = cv.VideoCapture('test/0.mpg')
+    #print cap
+    #counter = 0
+        
+    #while True:
+        #ret, frame = cap.read()
+        #if not ret:
+            #break
+        
+        #counter += 1
+        
+        #cv.imshow('frame', frame)
+        #if cv.waitKey(1) & 0xFF == ord('q'):
+            #break
+        
+        #if counter % 100 == 0:
+            #print counter, cap.get(cv.CV_CAP_PROP_FRAME_COUNT)
+
+    #print counter
+
+    #cap.release()
+    #cv2.destroyAllWindows()
+
     main()
-
-#cap = cv2.VideoCapture('test/0.mpg')
-
-#counter = 0
-#while(cap.isOpened()):
-    #ret, frame = cap.read()
-    #if not ret:
-        #break
-    
-    #counter += 1
-    
-    ##cv2.imshow('frame', frame)
-    ##if cv2.waitKey(1) & 0xFF == ord('q'):
-        ##break
-    
-    #if counter % 100 == 0:
-        #print counter, cap.get(cv.CV_CAP_PROP_FRAME_COUNT)
-
-#print counter
-
-#cap.release()
-#cv2.destroyAllWindows()
