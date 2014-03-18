@@ -35,15 +35,16 @@ class InstancePanel(wx.Panel):
         self.rows *= factor
         self.cols *= factor
         self.scale_image()
+        self.current_frame = 0
         
         self.imageControl = wx.StaticBitmap(self, -1, self.image)
-        
         self.videoFilenameLabel = wx.StaticText(self, label="Video:")
         self.videoFilenameButton = \
             wx.BitmapButton(self, id=wx.ID_ANY,
                             bitmap=wx.Bitmap(cwd() + '/media/open.png'),
                                              style=wx.NO_BORDER,
                                              pos=(10, 10))
+        self.num_of_frames = 0
         
         # Global commands (Load, Save, New, ...)
         self.newInstanceButton = wx.BitmapButton(self, id=wx.ID_ANY,
@@ -157,10 +158,14 @@ class InstancePanel(wx.Panel):
         dlg.Destroy()
     
     def OnGoToPrevious(self, event):
-        print "go to previous"
-    
+        print "go to previous",
+        self.current_frame = max(0, self.current_frame - 1)
+        print self.current_frame
+        
     def OnGoToNext(self, event):
-        print "go to next"
+        print "go to next",
+        self.current_frame = min(self.num_of_frames, self.current_frame + 1)
+        print self.current_frame
     
     def OnKeyPress(self, event):
         
