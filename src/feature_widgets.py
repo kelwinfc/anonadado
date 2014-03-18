@@ -494,3 +494,70 @@ class VectorFeatureWidget(BoundingBoxFeatureWidget):
         BoundingBoxFeatureWidget.createControls(self)
         self.UpperLeftLabel.SetLabel("Start:")
         self.LowerRightLabel.SetLabel("End:  ")
+
+class PointFeatureWidget(DefaultValueFeatureWidget):
+    def __init__(self, parent, an, annotation, feature, id):
+        DefaultValueFeatureWidget.__init__(self, parent, an, annotation,
+                                           feature, id)
+
+    def createControls(self):
+        DefaultValueFeatureWidget.createControls(self)
+
+        self.defaultInput.Hide()
+        self.defaultLabel.Hide()
+        self.validValue.Hide()
+
+        self.XLabel = wx.StaticText(self, label="X")
+        self.YLabel = wx.StaticText(self, label="Y")
+        
+        self.XInput = intctrl.IntCtrl(self, size=( 50, -1 ))
+        self.YInput = intctrl.IntCtrl(self, size=( 50, -1 ))
+        
+        self.XInput.SetValue(self.feature.default[0])
+        self.YInput.SetValue(self.feature.default[1])
+
+    def setLayout(self):
+        def addToSizer(sizer, item, alignment=wx.ALL):
+            sizer.Add(item, 0, alignment, 5)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.nameSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.pSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        seq = [(self.sizer, self.nameSizer),
+               (self.sizer, self.pSizer),
+               
+               (self.nameSizer, self.name),
+               (self.nameSizer, self.removeButton),
+               (self.nameSizer, self.moveDownButton),
+               (self.nameSizer, self.moveUpButton),
+
+               (self.pSizer, self.XLabel),
+               (self.pSizer, self.XInput),
+               (self.pSizer, self.YLabel),
+               (self.pSizer, self.YInput)
+              ]
+
+        for n in seq:
+            a = wx.ALL
+            s = n[0]
+            i = n[1]
+            if len(n) == 3:
+                a = n[2]
+            addToSizer(s, i, a)
+
+        self.SetSizer(self.sizer)
+
+    def bindControls(self):
+        DefaultValueFeatureWidget.bindControls(self)
+        self.XInput.Bind(intctrl.EVT_INT, self.OnChangeDefault)
+        self.YInput.Bind(intctrl.EVT_INT, self.OnChangeDefault)
+        self.XInput.Bind(intctrl.EVT_INT, self.OnChangeDefault)
+        self.YInput.Bind(intctrl.EVT_INT, self.OnChangeDefault)
+
+    def OnChangeDefault(self, event):
+        v = [self.XInput, self.YInput]
+        for x in range(2):
+            if v[x].GetValue() < 0:
+                v[x].SetValue(-v[x].GetValue())
+            self.feature.default[x] = v[x].GetValue()

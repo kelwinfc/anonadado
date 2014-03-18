@@ -134,13 +134,36 @@ class vector_feature(bbox_feature):
     def get_instance(self):
         return vector_feature(self.to_json())
 
+class point_feature(feature):
+    def __init__(self, json):
+        feature.__init__(self, json, [0,0])
+
+    def get_instance(self):
+        return point_feature(self.to_json())
+
+    def merge(self, a, l, i, r):
+        if self.value is None:
+            self.value = self.default
+        if a.value is None:
+            a.value = a.default
+
+        right_rate = float(i - l)/float(r - l)
+        left_rate = 1.0 - right_rate
+
+        ret = [0,0]
+        for x in range(2):
+            ret[x] = int( left_rate * self.value[x] + \
+                          right_rate * a.value[x] )
+        self.value = ret
+
 class_by_name = {"bool": bool_feature,
                  "string": str_feature,
                  "float": float_feature,
                  "int": int_feature,
                  "choice": choice_feature,
                  "bbox": bbox_feature,
-                 "vector": vector_feature
+                 "vector": vector_feature,
+                 "point": point_feature
                 }
 
 def get_class_by_type(t):
