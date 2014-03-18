@@ -65,8 +65,8 @@ class int_feature(feature):
         return int_feature(self.to_json())
 
     def merge(self, a, l, i, r):
-        left_rate = float(i - l)/float(r - l)
-        right_rate = 1.0 - left_rate
+        right_rate = float(i - l)/float(r - l)
+        left_rate = 1.0 - right_rate
 
         self.value = int(left_rate * self.value + right_rate * a.value)
 
@@ -99,6 +99,22 @@ class bbox_feature(feature):
     
     def get_instance(self):
         return bbox_feature(self.to_json())
+
+    def merge(self, a, l, i, r):
+        if self.value is None:
+            self.value = self.default
+        if a.value is None:
+            a.value = a.default
+        
+        right_rate = float(i - l)/float(r - l)
+        left_rate = 1.0 - right_rate
+        
+        ret = [[0,0],[0,0]]
+        for x in range(2):
+            for y in range(2):
+                ret[x][y] = int( left_rate * self.value[x][y] + \
+                                        right_rate * a.value[x][y] )
+        self.value = ret
 
 class vector_feature(bbox_feature):
     def __init__(self, json):

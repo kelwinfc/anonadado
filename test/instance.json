@@ -130,7 +130,8 @@
                 "features" : [
                     {"name" : "value", "value": true},
                     {"name" : "object", "value": "hand"},
-                    {"name" : "description", "value": "Doctor's hand"}
+                    {"name" : "description", "value": "Doctor's hand"},
+                    {"name" : "roi", "value" : [[10,20],[30,40]]}
                 ]
             }
         ],
