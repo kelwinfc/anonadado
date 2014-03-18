@@ -227,7 +227,7 @@ class StringFeatureWidget(DefaultValueFeatureWidget):
     def OnChangeDefault(self, event):
         self.feature.default = self.defaultInput.GetValue()
 
-class IntFeatureWidget(DefaultValueFeatureWidget):
+class FloatFeatureWidget(DefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         DefaultValueFeatureWidget.__init__(self, parent, an, annotation,
                                            feature, id)
@@ -238,11 +238,13 @@ class IntFeatureWidget(DefaultValueFeatureWidget):
         for ch in new_value:
             if ch in "0123456789.,+-e":
                 aux_value += ch
-
+        
         if new_value != aux_value:
             self.defaultInput.SetValue(aux_value)
-        self.is_valid()
-
+            
+        if self.is_valid():
+            self.feature.default = float(aux_value)
+    
     def is_valid(self):
         def is_number(s):
             try:
@@ -251,6 +253,40 @@ class IntFeatureWidget(DefaultValueFeatureWidget):
                 return False
             return True
 
+        new_value = self.defaultInput.GetValue().capitalize()
+
+        if is_number(str(new_value)):
+            self.changeValidator(True)
+            return True
+        self.changeValidator(False)
+        return False
+
+class IntFeatureWidget(FloatFeatureWidget):
+    def __init__(self, parent, an, annotation, feature, id):
+        FloatFeatureWidget.__init__(self, parent, an, annotation,
+                                    feature, id)
+
+    def OnChangeDefault(self, event):
+        new_value = self.defaultInput.GetValue()
+        aux_value = ""
+        for ch in new_value:
+            if ch in "0123456789+-":
+                aux_value += ch
+        
+        if new_value != aux_value:
+            self.defaultInput.SetValue(aux_value)
+
+        if self.is_valid():
+            self.feature.default = int(aux_value)
+    
+    def is_valid(self):
+        def is_number(s):
+            try:
+                i = int(s)
+            except ValueError, TypeError:
+                return False
+            return True
+        
         new_value = self.defaultInput.GetValue().capitalize()
 
         if is_number(str(new_value)):

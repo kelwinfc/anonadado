@@ -57,18 +57,29 @@ class str_feature(feature):
     def get_instance(self):
         return str_feature(self.to_json())
 
-class int_feature(feature):
+class float_feature(feature):
     def __init__(self, json):
         feature.__init__(self, json, 0)
+
+    def get_instance(self):
+        return float_feature(self.to_json())
     
+    def merge(self, a, l, i, r):
+        right_rate = float(i - l)/float(r - l)
+        left_rate = 1.0 - right_rate
+        
+        self.value = left_rate * self.value + right_rate * a.value
+
+class int_feature(float_feature):
+    def __init__(self, json):
+        feature.__init__(self, json, 0)
+
     def get_instance(self):
         return int_feature(self.to_json())
 
     def merge(self, a, l, i, r):
-        right_rate = float(i - l)/float(r - l)
-        left_rate = 1.0 - right_rate
-
-        self.value = int(left_rate * self.value + right_rate * a.value)
+        float_feature.merge(self, a, l, i, r)
+        self.value = int(self.value)
 
 class choice_feature(feature):
     def __init__(self, json):
@@ -125,6 +136,7 @@ class vector_feature(bbox_feature):
 
 class_by_name = {"bool": bool_feature,
                  "string": str_feature,
+                 "float": float_feature,
                  "int": int_feature,
                  "choice": choice_feature,
                  "bbox": bbox_feature,
@@ -259,6 +271,7 @@ class annotation_manager:
                     next_instance.set_values(ss)
                     next_annotation.append(next_instance)
                 self.sequence.append(next_annotation)
+                
                 #for i in xrange(len(next_annotation)-1):
                     #for x in map(lambda x: x.to_json(False),
                                  #next_annotation[i].interpolate(
@@ -267,6 +280,7 @@ class annotation_manager:
                         #print x
                     #print
                 #print
+    
     def domain_to_json(self):
         return { "name" : self.domain_name,
                  "labels" : map(lambda x : self.domain[x].to_json(),

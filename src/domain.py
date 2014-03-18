@@ -11,6 +11,7 @@ from feature_widgets import *
 
 widget_by_name = {"bool": BoolFeatureWidget,
                   "string": StringFeatureWidget,
+                  "float": FloatFeatureWidget,
                   "int": IntFeatureWidget,
                   "choice": ChoiceFeatureWidget,
                   "bbox": BoundingBoxFeatureWidget,
