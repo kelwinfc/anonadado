@@ -39,6 +39,10 @@ class feature:
     def set_values(self, json):
         self.value = json.get("value", self.default)
 
+    def merge(self, a, l, i, r):
+        if i > (l+r)/2:
+            self.value = a.value
+
 class bool_feature(feature):
     def __init__(self, json):
         feature.__init__(self, json, True)
@@ -59,6 +63,12 @@ class int_feature(feature):
     
     def get_instance(self):
         return int_feature(self.to_json())
+
+    def merge(self, a, l, i, r):
+        left_rate = float(i - l)/float(r - l)
+        right_rate = 1.0 - left_rate
+
+        self.value = int(left_rate * self.value + right_rate * a.value)
 
 class choice_feature(feature):
     def __init__(self, json):
@@ -146,6 +156,27 @@ class annotation:
     def get_instance(self):
         return annotation(self.to_json())
 
+    def merge_features(self, b, l, i, r):
+        ret = self.get_instance()
+        for idx, f in enumerate(ret.features):
+            ret.features[idx].merge(b.features[idx], l, i, r)
+        ret.frame = i
+        return ret
+    
+    def interpolate(self, b):
+        if self.name != b.name:
+            stderr.write("Invalid interpolation\n")
+            return []
+        
+        start = self.frame
+        end = b.frame
+        
+        ret = []
+        for x in xrange(start, end+1):
+            ret.append(self.merge_features(b, start, x, end))
+        
+        return ret
+
 class annotation_manager:
     
     def __init__(self, domain_filename=None):
@@ -212,7 +243,14 @@ class annotation_manager:
                     next_instance.set_values(ss)
                     next_annotation.append(next_instance)
                 self.sequence.append(next_annotation)
-    
+                #for i in xrange(len(next_annotation)-1):
+                    #for x in map(lambda x: x.to_json(False),
+                                 #next_annotation[i].interpolate(
+                                                         #next_annotation[i+1])
+                                 #):
+                        #print x
+                    #print
+                #print
     def domain_to_json(self):
         return { "name" : self.domain_name,
                  "labels" : map(lambda x : self.domain[x].to_json(),

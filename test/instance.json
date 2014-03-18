@@ -19,7 +19,7 @@
             },
             {
               "name" : "patient",
-              "frame" : 1000,
+              "frame" : 10,
               "features" :
               [
                   {
@@ -41,7 +41,7 @@
             },
             {
                 "name" : "occlusion",
-                "frame" : 150,
+                "frame" : 1,
                 "features" : [
                     {"name" : "value", "value": true},
                     {"name" : "object", "value": "lens"},
@@ -52,7 +52,7 @@
         [
             {
                 "name" : "occlusion",
-                "frame" : 150,
+                "frame" : 1,
                 "features" : [
                     {"name" : "value", "value": true},
                     {"name" : "object", "value": "lens"},
@@ -61,7 +61,7 @@
             },
             {
                 "name" : "occlusion",
-                "frame" : 210,
+                "frame" : 2,
                 "features" : [
                     {"name" : "value", "value": true},
                     {"name" : "object", "value": "lens"},
@@ -70,7 +70,7 @@
             },
             {
                 "name" : "occlusion",
-                "frame" : 350,
+                "frame" : 3,
                 "features" : [
                     {"name" : "value", "value": true},
                     {"name" : "object", "value": "lens"},
@@ -79,7 +79,7 @@
             },
             {
                 "name" : "occlusion",
-                "frame" : 400,
+                "frame" : 4,
                 "features" : [
                     {"name" : "value", "value": true},
                     {"name" : "object", "value": "lens"},
@@ -99,16 +99,16 @@
         [
             {
                 "name" : "occlusion",
-                "frame" : 150,
+                "frame" : 1,
                 "features" : [
-                    {"name" : "value", "value": true},
+                    {"name" : "value", "value": false},
                     {"name" : "object", "value": "hand"},
                     {"name" : "description", "value": "Doctor's hand"}
                 ]
             },
             {
                 "name" : "occlusion",
-                "frame" : 250,
+                "frame" : 2,
                 "features" : [
                     {"name" : "value", "value": true},
                     {"name" : "object", "value": "lens"},
@@ -117,16 +117,16 @@
             },
             {
                 "name" : "occlusion",
-                "frame" : 300,
+                "frame" : 5,
                 "features" : [
-                    {"name" : "value", "value": true},
+                    {"name" : "value", "value": false},
                     {"name" : "object", "value": "hand"},
                     {"name" : "description", "value": "Doctor's hand"}
                 ]
             },
             {
                 "name" : "occlusion",
-                "frame" : 500,
+                "frame" : 7,
                 "features" : [
                     {"name" : "value", "value": true},
                     {"name" : "object", "value": "hand"},
@@ -137,7 +137,7 @@
         [
             {
                 "name" : "focus",
-                "frame" : 300,
+                "frame" : 3,
                 "features" : [
                     {"name" : "value", "value": true}
                 ]
@@ -146,16 +146,16 @@
         [
             {
                 "name" : "focus",
-                "frame" : 600,
+                "frame" : 6,
                 "features" : [
                     {"name" : "value", "value": false}
                 ]
             },
             {
                 "name" : "focus",
-                "frame" : 1000,
+                "frame" : 10,
                 "features" : [
-                    {"name" : "value", "value": false}
+                    {"name" : "value", "value": true}
                 ]
             }
         ]
