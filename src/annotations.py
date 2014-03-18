@@ -87,7 +87,7 @@ class bbox_feature(feature):
         feature.__init__(self, json, [[0,0],[0,0]])
     
     def get_instance(self):
-        return int_feature(self.to_json())
+        return bbox_feature(self.to_json())
 
 class vector_feature(bbox_feature):
     def __init__(self, json):
@@ -109,8 +109,7 @@ def get_class_by_type(t):
 
 class annotation:
     def __init__(self, json):
-        self.start = json.get("start", -1)
-        self.end = json.get("end", -1)
+        self.frame = json.get("frame", -1)
         self.name = json.get("name", "")
         self.is_unique = json.get("is_unique", False)
         self.is_global = json.get("is_global", False)
@@ -126,18 +125,18 @@ class annotation:
         ret = { "name" : self.name,
                 "features" : map(lambda x : x.to_json(verbose), self.features)
               }
+        if self.frame != -1:
+            ret["frame"] = self.frame
         if verbose:
             ret["is_unique"] = self.is_unique
             ret["is_global"] = self.is_global
-        if self.start != -1:
-            ret["start"] = self.start
-        if self.end != -1:
-            ret["end"] = self.end
+        if self.frame != -1:
+            ret["frame"] = self.frame
         
         return ret
     
     def set_values(self, json):
-        self.set_interval(json["start"], json["end"])
+        self.frame = json.get("frame", -1)
         for f in json["features"]:
             for my_f in self.features:
                 if my_f.name == f["name"]:
@@ -145,10 +144,6 @@ class annotation:
     
     def get_instance(self):
         return annotation(self.to_json())
-    
-    def set_interval(self, a, b):
-        self.start = a
-        self.end = b
 
 class annotation_manager:
     
@@ -160,6 +155,7 @@ class annotation_manager:
         self.instance_name = ""
         self.instance_filename = None
         self.itype = None
+        self.sequence = []
         
         if domain_filename is not None:
             self.parse_domain(domain_filename)
@@ -196,12 +192,25 @@ class annotation_manager:
         self.sequence = []
         
         for s in i["sequence"]:
-            if not s["name"] in self.domain:
-                continue
+            labels = map(lambda x : x["name"], s)
+
+            frames = map(lambda x : x["frame"], s)
+            ordered_frames = list(frames)
+            ordered_frames.sort()
+            
+            if len(filter(lambda x: x not in self.domain, labels)) > 0:
+                print "Invalid labels"
+            elif len(set(labels)) > 1:
+                print "Different labels within the same annotation"
+            elif frames != ordered_frames or len(set(frames)) != len(frames) :
+                print "Invalid sort of annotations"
             else:
-                next_instance = self.domain[s["name"]].get_instance()
-                next_instance.set_values(s)
-                self.sequence.append(next_instance)
+                next_annotation = []
+                for ss in s:
+                    next_instance = self.domain[ss["name"]].get_instance()
+                    next_instance.set_values(ss)
+                    next_annotation.append(next_instance)
+                self.sequence.append(next_annotation)
     
     def domain_to_json(self):
         return { "name" : self.domain_name,
@@ -214,7 +223,9 @@ class annotation_manager:
                  "name" : self.instance_name,
                  "type" : self.itype,
                  "filename" : self.instance_filename,
-                 "sequence" : map(lambda x : x.to_json(False), self.sequence)
+                 "sequence" : map(lambda x :
+                                  map(lambda y: y.to_json(False), x),
+                              self.sequence)
                }
     
     def add_label(s):

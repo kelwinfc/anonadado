@@ -154,14 +154,13 @@ def main():
     
     domain_filename = dargs.get("domain", None)
     instance_filename = dargs.get("instance", None)
-
+    
     am = annotation_manager()
 
     
     app = wx.App()
     a = Anonadado(None)
     a.setAnnotator(am)
-
     if domain_filename is not None:
         am.parse_domain(domain_filename)
         a.domainTab.load_domain()
