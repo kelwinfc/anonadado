@@ -1,4 +1,5 @@
 import json
+from sys import stderr
 
 class feature:
     def __init__(self):
@@ -199,11 +200,11 @@ class annotation_manager:
             ordered_frames.sort()
             
             if len(filter(lambda x: x not in self.domain, labels)) > 0:
-                print "Invalid labels"
+                stderr.write("Invalid labels\n")
             elif len(set(labels)) > 1:
-                print "Different labels within the same annotation"
+                stderr.write("Different labels within the same annotation\n")
             elif frames != ordered_frames or len(set(frames)) != len(frames) :
-                print "Invalid sort of annotations"
+                stderr.write("Invalid sort of annotations\n")
             else:
                 next_annotation = []
                 for ss in s:
