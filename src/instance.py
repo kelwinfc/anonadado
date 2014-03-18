@@ -6,6 +6,7 @@ import os
 from os import getcwd as cwd
 import numpy as np
 import wx
+import tempfile
 
 from annotations import *
 
@@ -19,7 +20,11 @@ class InstancePanel(wx.Panel):
         self.addTooltips()
         self.bindControls()
         self.setLayout()
-        
+    
+    def __del__(self):
+        if self.temp_dir is not None and os.path.exists(self.temp_dir):
+            os.rmdir(self.temp_dir)
+    
     def createControls(self):
         # Instance name
         self.instanceNameLabel = wx.StaticText(self, label="Instance name:")
@@ -28,6 +33,8 @@ class InstancePanel(wx.Panel):
         # Video
         self.rows = 600
         self.cols = 400
+        self.temp_dir = tempfile.mkdtemp()
+        print self.temp_dir
         
         self.image = wx.Bitmap("test/0.jpg")
         (self.rows, self.cols) = self.image.GetSize()
