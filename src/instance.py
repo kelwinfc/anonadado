@@ -176,7 +176,9 @@ class InstancePanel(wx.Panel):
                         maximum = cap.get(cv.CV_CAP_PROP_FRAME_COUNT),
                         parent=self,
                         style = wx.PD_CAN_ABORT
-                        |wx.PD_ELAPSED_TIME|wx.PD_ESTIMATED_TIME|wx.PD_REMAINING_TIME
+                        |wx.PD_ELAPSED_TIME
+                        |wx.PD_REMAINING_TIME
+                        |wx.PD_ESTIMATED_TIME
                         |wx.PD_APP_MODAL
                         |wx.PD_AUTO_HIDE
                         )
@@ -192,7 +194,10 @@ class InstancePanel(wx.Panel):
                     break
                 
                 filename = dst_path + "/" + str(counter) + ".png"
-                cv2.imwrite(filename, frame)
+                
+                if not os.path.isfile(filename):
+                    cv2.imwrite(filename, frame)
+                
                 (keepGoing, skip) = progress_dlg.Update(counter)
             
             cap.release()
