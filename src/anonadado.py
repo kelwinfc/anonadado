@@ -4,8 +4,7 @@
 import sys
 import json
 import numpy as np
-import cv
-#import cv2.cv as cv
+import cv2.cv as cv
 import wx
 import os
 import wx.lib.agw.multidirdialog as MDD
@@ -185,28 +184,4 @@ def main():
         f.close()
 
 if __name__ == '__main__':
-
-    #cap = cv.VideoCapture('test/0.mpg')
-    #print cap
-    #counter = 0
-        
-    #while True:
-        #ret, frame = cap.read()
-        #if not ret:
-            #break
-        
-        #counter += 1
-        
-        #cv.imshow('frame', frame)
-        #if cv.waitKey(1) & 0xFF == ord('q'):
-            #break
-        
-        #if counter % 100 == 0:
-            #print counter, cap.get(cv.CV_CAP_PROP_FRAME_COUNT)
-
-    #print counter
-
-    #cap.release()
-    #cv2.destroyAllWindows()
-
     main()

@@ -7,6 +7,8 @@ from os import getcwd as cwd
 import numpy as np
 import wx
 import tempfile
+import cv2.cv as cv
+import cv2
 
 from annotations import *
 
@@ -22,8 +24,7 @@ class InstancePanel(wx.Panel):
         self.setLayout()
     
     def __del__(self):
-        if self.temp_dir is not None and os.path.exists(self.temp_dir):
-            os.rmdir(self.temp_dir)
+        pass
     
     def createControls(self):
         # Instance name
@@ -33,8 +34,6 @@ class InstancePanel(wx.Panel):
         # Video
         self.rows = 600
         self.cols = 400
-        self.temp_dir = tempfile.mkdtemp()
-        print self.temp_dir
         
         self.image = wx.Bitmap("test/0.jpg")
         (self.rows, self.cols) = self.image.GetSize()
@@ -45,7 +44,7 @@ class InstancePanel(wx.Panel):
         self.current_frame = 0
         
         self.imageControl = wx.StaticBitmap(self, -1, self.image)
-        self.videoFilenameLabel = wx.StaticText(self, label="Video:")
+        self.videoFilenameLabel = wx.StaticText(self, label="Preprocess Video:")
         self.videoFilenameButton = \
             wx.BitmapButton(self, id=wx.ID_ANY,
                             bitmap=wx.Bitmap(cwd() + '/media/open.png'),
@@ -79,7 +78,7 @@ class InstancePanel(wx.Panel):
         self.newInstanceButton.Bind(wx.EVT_BUTTON, self.top_app.OnNewInstance)
         self.openInstanceButton.Bind(wx.EVT_BUTTON, self.top_app.OnLoadInstance)
         self.saveInstanceButton.Bind(wx.EVT_BUTTON, self.top_app.OnSaveInstance)
-        self.videoFilenameButton.Bind(wx.EVT_BUTTON, self.OnLoadVideo)
+        self.videoFilenameButton.Bind(wx.EVT_BUTTON, self.OnProcessVideo)
         
         self.Bind(wx.EVT_CHAR_HOOK, self.OnKeyPress)
         
@@ -151,7 +150,7 @@ class InstancePanel(wx.Panel):
     def OnSaveInstance(self, event):
         print "save instance"
     
-    def OnLoadVideo(self, event):
+    def OnProcessVideo(self, event):
         dlg = wx.FileDialog(self, message = "Choose a file",
                              defaultDir = os.getcwd(),
                              defaultFile = "",
@@ -161,8 +160,49 @@ class InstancePanel(wx.Panel):
                             )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPaths()[0]
+            dst_path = '.'.join(path.split(".")[:-1])
+            try:
+                os.mkdir(dst_path)
+            except:
+                pass
             
+            cap = cv2.VideoCapture(path)
+            
+            progress_dlg = wx.ProgressDialog(
+                        "Please wait.", 
+                        "Please wait while your video is processed.\n" +\
+                        "The image sequence is being saved in " +\
+                        dst_path + "/<frame_number>.png",
+                        maximum = cap.get(cv.CV_CAP_PROP_FRAME_COUNT),
+                        parent=self,
+                        style = wx.PD_CAN_ABORT
+                        |wx.PD_ELAPSED_TIME|wx.PD_ESTIMATED_TIME|wx.PD_REMAINING_TIME
+                        |wx.PD_APP_MODAL
+                        |wx.PD_AUTO_HIDE
+                        )
+            
+            keepGoing = True
+            skip = False
+            
+            while keepGoing:
+                counter = cap.get(cv.CV_CAP_PROP_POS_FRAMES)
+                
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                
+                filename = dst_path + "/" + str(counter) + ".png"
+                cv2.imwrite(filename, frame)
+                (keepGoing, skip) = progress_dlg.Update(counter)
+            
+            cap.release()
+            
+            progress_dlg.Destroy()
+        
         dlg.Destroy()
+        
+    def OnLoadVideo(self, event):
+        return
     
     def OnGoToPrevious(self, event):
         print "go to previous",
