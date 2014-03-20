@@ -172,11 +172,13 @@ class InstancePanel(wx.Panel):
                         "Please wait.", 
                         "Please wait while your video is processed.\n" +\
                         "The image sequence is being saved in " +\
-                        dst_path + "/<frame_number>.png",
+                        dst_path + "/<frame_number>.jpg",
                         maximum = cap.get(cv.CV_CAP_PROP_FRAME_COUNT),
                         parent=self,
                         style = wx.PD_CAN_ABORT
-                        |wx.PD_ELAPSED_TIME|wx.PD_ESTIMATED_TIME|wx.PD_REMAINING_TIME
+                        |wx.PD_ELAPSED_TIME
+                        |wx.PD_ESTIMATED_TIME
+                        |wx.PD_REMAINING_TIME
                         |wx.PD_APP_MODAL
                         |wx.PD_AUTO_HIDE
                         )
@@ -185,13 +187,13 @@ class InstancePanel(wx.Panel):
             skip = False
             
             while keepGoing:
-                counter = cap.get(cv.CV_CAP_PROP_POS_FRAMES)
+                counter = int(cap.get(cv.CV_CAP_PROP_POS_FRAMES))
                 
                 ret, frame = cap.read()
                 if not ret:
                     break
                 
-                filename = dst_path + "/" + str(counter) + ".png"
+                filename = dst_path + "/" + str(counter) + ".jpg"
                 cv2.imwrite(filename, frame)
                 (keepGoing, skip) = progress_dlg.Update(counter)
             
