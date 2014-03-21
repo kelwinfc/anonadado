@@ -46,7 +46,7 @@ class InstancePanel(wx.Panel):
 
         ## Video: Process video
         self.imageControl = wx.StaticBitmap(self, -1, self.image)
-        self.videoFilenameLabel = wx.StaticText(self, label="Preprocess Video:")
+        self.videoFilenameLabel = wx.StaticText(self, label="Video:")
         self.videoFilenameButton = \
             wx.BitmapButton(self, id=wx.ID_ANY,
                             bitmap=wx.Bitmap(cwd() + '/media/open.png'),
@@ -111,10 +111,11 @@ class InstancePanel(wx.Panel):
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)             # Global
         self.left_sizer = wx.BoxSizer(wx.VERTICAL)          # Left bar
         self.imageSizer = wx.BoxSizer(wx.VERTICAL)          # Images
-        self.instanceNameSizer = wx.BoxSizer(wx.HORIZONTAL) # Instance name
         self.commandSizer = wx.BoxSizer(wx.HORIZONTAL)      # Commands
-        self.videoFilenameSizer = wx.GridSizer(2, 2, 5, 10)
-        self.selectSequenceSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.instanceNameSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.videoFilenameSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sequenceFilenameSizer = wx.BoxSizer(wx.HORIZONTAL)
         
         seq = [
                 # Skeleton
@@ -124,23 +125,19 @@ class InstancePanel(wx.Panel):
                 (self.left_sizer, self.commandSizer, wx.ALIGN_CENTER),
                 (self.left_sizer, self.instanceNameSizer),
                 (self.left_sizer, self.videoFilenameSizer),
-                (self.left_sizer, self.selectSequenceSizer),
+                (self.left_sizer, self.sequenceFilenameSizer),
                 
                 # Instance Name
-                (self.videoFilenameSizer, self.instanceNameLabel),
-                (self.videoFilenameSizer, self.instanceNameInput)
-               ]
-
-        if self.videoFilenameLabel is not None:
-            seq += [
+                (self.instanceNameSizer, self.instanceNameLabel),
+                (self.instanceNameSizer, self.instanceNameInput),
+                
                 # Load Video
                 (self.videoFilenameSizer, self.videoFilenameLabel),
-                (self.videoFilenameSizer, self.videoFilenameButton)]
-        
-        seq += [
+                (self.videoFilenameSizer, self.videoFilenameButton),
+                
                 # Load Sequence
-                (self.selectSequenceSizer, self.sequenceLabel),
-                (self.selectSequenceSizer, self.sequenceButton),
+                (self.sequenceFilenameSizer, self.sequenceLabel),
+                (self.sequenceFilenameSizer, self.sequenceButton),
                 
                 # Image
                 (self.imageSizer, self.imageControl),
@@ -163,18 +160,20 @@ class InstancePanel(wx.Panel):
         self.load_instance()
 
     def load_sequence(self):
-        self.videoFilenameLabel.Hide()
-        self.videoFilenameButton.Hide()
-        self.videoFilenameLabel = None
-        self.videoFilenameButton = None
-        
-        self.sequenceLabel.SetLabel("Image sequence: ..." + \
-                                    self.sequence_dir[-20:])
-        self.sequenceLabel.SetToolTip(wx.ToolTip(self.sequence_dir))
-        self.Layout()
-
-        self.current_frame = 0
-        self.go_to_frame()
+        try:
+            vpath = open(self.sequence_dir + "/anonadado.data").readlines()[0]
+            self.videoFilenameLabel.SetLabel("Video: ..." + vpath[-20:])
+            
+            self.sequenceLabel.SetLabel("Image sequence: ..." + \
+                                        self.sequence_dir[-20:])
+            self.sequenceLabel.SetToolTip(wx.ToolTip(self.sequence_dir))
+            self.Layout()
+            
+            self.current_frame = 0
+            self.go_to_frame()
+        except:
+            pass
+            #TODO: show dialog with invalid sequence
     
     def go_to_frame(self):
         pass
