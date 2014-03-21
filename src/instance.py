@@ -238,6 +238,11 @@ class InstancePanel(wx.Panel):
             
             keepGoing = True
             skip = False
+
+            # This file helps to recover the video that generated the sequence
+            instance_description = open(dst_path + "/anonadado.data", "w")
+            instance_description.write(path)
+            instance_description.close()
             
             while keepGoing:
                 counter = int(cap.get(cv.CV_CAP_PROP_POS_FRAMES))
