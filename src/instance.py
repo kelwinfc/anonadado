@@ -106,6 +106,7 @@ class InstancePanel(wx.Panel):
         self.sequenceButton.SetToolTip(
             wx.ToolTip("Sequence of images to be processed"))
         
+        self.addAnnotationLabel.SetToolTip(wx.ToolTip("Double click to select"))
         self.addAnnotationList.SetToolTip(wx.ToolTip("Double click to select"))
     
     def bindControls(self):
@@ -281,7 +282,7 @@ class InstancePanel(wx.Panel):
             
             keepGoing = True
             skip = False
-
+            
             # This file helps to recover the video that generated the sequence
             instance_description = open(dst_path + "/anonadado.data", "w")
             instance_description.writelines(
