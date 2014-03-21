@@ -282,16 +282,11 @@ class InstancePanel(wx.Panel):
                 if not ret:
                     break
                 
-<<<<<<< HEAD
                 filename = dst_path + "/" + str(counter) + ".png"
                 
                 if not os.path.isfile(filename):
                     cv2.imwrite(filename, frame)
                 
-=======
-                filename = dst_path + "/" + str(counter) + ".jpg"
-                cv2.imwrite(filename, frame)
->>>>>>> 3083a19b66cf0328b3a71c48d1d80a63eed16cb5
                 (keepGoing, skip) = progress_dlg.Update(counter)
             
             cap.release()
