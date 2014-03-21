@@ -88,6 +88,7 @@ class Anonadado(wx.Frame):
             path = dlg.GetPaths()[0]
             self.am.parse_domain(path)
             self.domainTab.load_domain()
+            self.instanceTab.load_domain()
         dlg.Destroy()
 
         if len(self.am.domain.keys()) > 0:
@@ -167,6 +168,7 @@ def main():
     if domain_filename is not None:
         am.parse_domain(domain_filename)
         a.domainTab.load_domain()
+        a.instanceTab.load_domain()
     
     if instance_filename is not None:
         am.parse_instance(instance_filename)

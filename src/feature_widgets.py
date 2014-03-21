@@ -33,9 +33,8 @@ class FeatureWidget(wx.Panel):
 
     def createControls(self):
         self.name = wx.StaticText(self,
-            label="[" + str(self.get_feature_index()) + "] " + \
-                  self.annotation.name + "::" + self.feature.name + \
-                  " (" + self.feature.ftype + ")")
+            label="[" + str(self.get_feature_index()) + "] (" + \
+                  self.feature.ftype + ")\n" + self.feature.name)
         font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
         self.name.SetFont(font)
 

@@ -55,19 +55,30 @@ class InstancePanel(wx.Panel):
         self.videoFilenameLabel = wx.StaticText(self, label="Video:")
         self.videoFilenameButton = \
             wx.BitmapButton(self, id=wx.ID_ANY,
-                            bitmap=wx.Bitmap(cwd() + '/media/open.png'),
+                            bitmap=wx.Bitmap(cwd() + '/media/video.png'),
                                              style=wx.NO_BORDER,
                                              pos=(10, 10))
         self.num_of_frames = 0
         
         ## Video: Load video
-        self.sequenceLabel = wx.StaticText(self, label="Image sequence:")
+        self.sequenceLabel = wx.StaticText(self, label="Sequence:")
         self.sequenceButton = \
             wx.BitmapButton(self, id=wx.ID_ANY,
-                            bitmap=wx.Bitmap(cwd() + '/media/open.png'),
+                            bitmap=wx.Bitmap(cwd() + '/media/sequence.png'),
                                              style=wx.NO_BORDER,
                                              pos=(10, 10))
         self.sequence_dir = None
+        
+        # Add Annotation
+        if self.top_app.am is not None:
+            print self.top_app.am.domain.keys()
+        
+        self.addAnnotationLabel = wx.StaticText(self, wx.ID_ANY,
+                                               "Add annotation:")
+        self.addAnnotationList = wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition,
+                                           (200, 400), [],
+                                           wx.LB_SINGLE|wx.EXPAND)
+        self.addAnnotationList.SetSelection(0)
         
         # Global commands (Load, Save, New, ...)
         self.newInstanceButton = wx.BitmapButton(self, id=wx.ID_ANY,
@@ -95,6 +106,8 @@ class InstancePanel(wx.Panel):
         self.sequenceButton.SetToolTip(
             wx.ToolTip("Sequence of images to be processed"))
         
+        self.addAnnotationList.SetToolTip(wx.ToolTip("Double click to select"))
+    
     def bindControls(self):
         
         self.newInstanceButton.Bind(wx.EVT_BUTTON, self.top_app.OnNewInstance)
@@ -106,7 +119,10 @@ class InstancePanel(wx.Panel):
         self.sequenceButton.Bind(wx.EVT_BUTTON, self.OnLoadSequence)
         self.tracker.Bind(wx.EVT_SCROLL_CHANGED, self.OnTrackerChanged)
         
+        self.addAnnotationList.Bind(wx.EVT_LISTBOX_DCLICK, self.OnAddAnnotation)
+        
         self.Bind(wx.EVT_CHAR_HOOK, self.OnKeyPress)
+        
         
         for x in vars(self):
             try:
@@ -126,11 +142,10 @@ class InstancePanel(wx.Panel):
         self.left_sizer = wx.BoxSizer(wx.VERTICAL)          # Left bar
         self.imageSizer = wx.BoxSizer(wx.VERTICAL)          # Images
         self.commandSizer = wx.BoxSizer(wx.HORIZONTAL)      # Commands
-
+        self.addAnnotationSizer = wx.BoxSizer(wx.VERTICAL)
+        
         self.instanceNameSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.videoFilenameSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.sequenceFilenameSizer = wx.BoxSizer(wx.HORIZONTAL)
-
+        
         seq = [
                 # Skeleton
                 (self.sizer, self.left_sizer),
@@ -138,29 +153,28 @@ class InstancePanel(wx.Panel):
 
                 (self.left_sizer, self.commandSizer, wx.ALIGN_CENTER),
                 (self.left_sizer, self.instanceNameSizer),
-                (self.left_sizer, self.videoFilenameSizer),
-                (self.left_sizer, self.sequenceFilenameSizer),
-
+                (self.left_sizer, self.addAnnotationSizer),
+                
                 # Instance Name
                 (self.instanceNameSizer, self.instanceNameLabel),
                 (self.instanceNameSizer, self.instanceNameInput),
-
-                # Load Video
-                (self.videoFilenameSizer, self.videoFilenameLabel),
-                (self.videoFilenameSizer, self.videoFilenameButton),
-
-                # Load Sequence
-                (self.sequenceFilenameSizer, self.sequenceLabel),
-                (self.sequenceFilenameSizer, self.sequenceButton),
-
+                
                 # Image
+                (self.imageSizer, self.videoFilenameLabel),
+                (self.imageSizer, self.sequenceLabel),
                 (self.imageSizer, self.imageControl),
                 (self.imageSizer, self.tracker),
 
                 # Commands
-               (self.commandSizer, self.newInstanceButton),
-               (self.commandSizer, self.openInstanceButton),
-               (self.commandSizer, self.saveInstanceButton)
+                (self.commandSizer, self.newInstanceButton),
+                (self.commandSizer, self.openInstanceButton),
+                (self.commandSizer, self.saveInstanceButton),
+                (self.commandSizer, self.videoFilenameButton),
+                (self.commandSizer, self.sequenceButton),
+               
+                # Add annotation
+                (self.addAnnotationSizer, self.addAnnotationLabel),
+                (self.addAnnotationSizer, self.addAnnotationList)
               ]
 
         for n in seq:
@@ -179,11 +193,10 @@ class InstancePanel(wx.Panel):
             lines = open(self.sequence_dir + "/anonadado.data").readlines()
             vpath = lines[0]
             self.num_of_frames = int(lines[1])
-            self.videoFilenameLabel.SetLabel("Video: ..." + vpath[-20:])
+            self.videoFilenameLabel.SetLabel("Video: " + vpath)
             self.videoFilenameLabel.SetToolTip(wx.ToolTip(vpath))
 
-            self.sequenceLabel.SetLabel("Image sequence: ..." + \
-                                        self.sequence_dir[-20:])
+            self.sequenceLabel.SetLabel("Sequence: " + self.sequence_dir)
             self.sequenceLabel.SetToolTip(wx.ToolTip(self.sequence_dir))
 
             self.current_frame = 0
@@ -202,6 +215,9 @@ class InstancePanel(wx.Panel):
                                str(self.current_frame) + ".jpg")
         self.scale_image()
         self.imageControl.SetBitmap(self.image)
+    
+    def OnAddAnnotation(self, event):
+        print self.addAnnotationList.GetStringSelection()
     
     def OnTrackerChanged(self, event):
         self.current_frame = self.tracker.GetValue()
@@ -282,7 +298,7 @@ class InstancePanel(wx.Panel):
                 if not ret:
                     break
                 
-                filename = dst_path + "/" + str(counter) + ".png"
+                filename = dst_path + "/" + str(counter) + ".jpg"
                 
                 if not os.path.isfile(filename):
                     cv2.imwrite(filename, frame)
@@ -315,6 +331,16 @@ class InstancePanel(wx.Panel):
             self.OnGoToNext(self)
         else:
             event.Skip()
+    
+    def load_domain(self):
+        self.addAnnotationList.Set([])
+        
+        if self.top_app.am is not None:
+            for k in self.top_app.am.domain.keys():
+                self.addAnnotationList.Append(k)
+                if k == 0:
+                    self.select_label(0)
+        self.Layout()
     
     def load_instance(self):
         pass

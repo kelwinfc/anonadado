@@ -21,7 +21,7 @@ widget_by_name = {"bool": BoolFeatureWidget,
 
 class AnnotationWidget(scrolled.ScrolledPanel):
     def __init__(self, parent, an, annotation, id):
-        scrolled.ScrolledPanel.__init__(self, parent, id, size=(1200,640),
+        scrolled.ScrolledPanel.__init__(self, parent, id, size=(1100,640),
                                         style=wx.ALWAYS_SHOW_SB)
         self.SetBestSize()
         self.SetAutoLayout(1)
@@ -106,8 +106,10 @@ class AnnotationWidget(scrolled.ScrolledPanel):
         self.featuresSizer = wx.GridSizer(rows=len(self.features)/2+1,
                                           cols=2, hgap=20, vgap=5)
         
-        seq = [ (self.sizer, self.removeButton, wx.ALIGN_RIGHT),
-                (self.sizer, self.name, wx.ALIGN_LEFT),
+        seq = [ (self.sizer, self.topSizer),
+        
+                (self.topSizer, self.name),
+                (self.topSizer, self.removeButton),
                 
                 (self.sizer, self.addFeatureSizer),
                 (self.sizer, self.featuresSizer),
