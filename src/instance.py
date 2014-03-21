@@ -46,6 +46,12 @@ class InstancePanel(wx.Panel):
 
         ## Video: Process video
         self.imageControl = wx.StaticBitmap(self, -1, self.image)
+        
+        self.tracker = wx.Slider(self, id=wx.ID_ANY, value=0, minValue=0,
+                                 maxValue=0, size=(600,40),
+                                 style=wx.SL_HORIZONTAL
+                                       |wx.SL_LABELS|wx.SL_AUTOTICKS)
+        
         self.videoFilenameLabel = wx.StaticText(self, label="Video:")
         self.videoFilenameButton = \
             wx.BitmapButton(self, id=wx.ID_ANY,
@@ -83,14 +89,22 @@ class InstancePanel(wx.Panel):
         self.newInstanceButton.SetToolTip(wx.ToolTip("New empty instance"))
         self.openInstanceButton.SetToolTip(wx.ToolTip("Open instance"))
         self.saveInstanceButton.SetToolTip(wx.ToolTip("Save the instance"))
+
+        self.videoFilenameButton.SetToolTip(
+            wx.ToolTip("Load Video to be processed"))
+        self.sequenceButton.SetToolTip(
+            wx.ToolTip("Sequence of images to be processed"))
         
     def bindControls(self):
         
         self.newInstanceButton.Bind(wx.EVT_BUTTON, self.top_app.OnNewInstance)
-        self.openInstanceButton.Bind(wx.EVT_BUTTON, self.top_app.OnLoadInstance)
-        self.saveInstanceButton.Bind(wx.EVT_BUTTON, self.top_app.OnSaveInstance)
+        self.openInstanceButton.Bind(wx.EVT_BUTTON,
+                                     self.top_app.OnLoadInstance)
+        self.saveInstanceButton.Bind(wx.EVT_BUTTON,
+                                     self.top_app.OnSaveInstance)
         self.videoFilenameButton.Bind(wx.EVT_BUTTON, self.OnProcessVideo)
         self.sequenceButton.Bind(wx.EVT_BUTTON, self.OnLoadSequence)
+        self.tracker.Bind(wx.EVT_SCROLL_CHANGED, self.OnTrackerChanged)
         
         self.Bind(wx.EVT_CHAR_HOOK, self.OnKeyPress)
         
@@ -107,7 +121,7 @@ class InstancePanel(wx.Panel):
     def setLayout(self):
         def addToSizer(sizer, item, alignment=wx.ALL):
             sizer.Add(item, 0, alignment, 5)
-        
+
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)             # Global
         self.left_sizer = wx.BoxSizer(wx.VERTICAL)          # Left bar
         self.imageSizer = wx.BoxSizer(wx.VERTICAL)          # Images
@@ -116,38 +130,39 @@ class InstancePanel(wx.Panel):
         self.instanceNameSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.videoFilenameSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sequenceFilenameSizer = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         seq = [
                 # Skeleton
                 (self.sizer, self.left_sizer),
                 (self.sizer, self.imageSizer),
-                
+
                 (self.left_sizer, self.commandSizer, wx.ALIGN_CENTER),
                 (self.left_sizer, self.instanceNameSizer),
                 (self.left_sizer, self.videoFilenameSizer),
                 (self.left_sizer, self.sequenceFilenameSizer),
-                
+
                 # Instance Name
                 (self.instanceNameSizer, self.instanceNameLabel),
                 (self.instanceNameSizer, self.instanceNameInput),
-                
+
                 # Load Video
                 (self.videoFilenameSizer, self.videoFilenameLabel),
                 (self.videoFilenameSizer, self.videoFilenameButton),
-                
+
                 # Load Sequence
                 (self.sequenceFilenameSizer, self.sequenceLabel),
                 (self.sequenceFilenameSizer, self.sequenceButton),
-                
+
                 # Image
                 (self.imageSizer, self.imageControl),
-                
+                (self.imageSizer, self.tracker),
+
                 # Commands
                (self.commandSizer, self.newInstanceButton),
                (self.commandSizer, self.openInstanceButton),
                (self.commandSizer, self.saveInstanceButton)
               ]
-        
+
         for n in seq:
             a = wx.ALL
             s = n[0]
@@ -155,28 +170,42 @@ class InstancePanel(wx.Panel):
             if len(n) == 3:
                 a = n[2]
             addToSizer(s, i, a)
-        
+
         self.SetSizer(self.sizer)
         self.load_instance()
 
     def load_sequence(self):
         try:
-            vpath = open(self.sequence_dir + "/anonadado.data").readlines()[0]
+            lines = open(self.sequence_dir + "/anonadado.data").readlines()
+            vpath = lines[0]
+            self.num_of_frames = int(lines[1])
             self.videoFilenameLabel.SetLabel("Video: ..." + vpath[-20:])
-            
+            self.videoFilenameLabel.SetToolTip(wx.ToolTip(vpath))
+
             self.sequenceLabel.SetLabel("Image sequence: ..." + \
                                         self.sequence_dir[-20:])
             self.sequenceLabel.SetToolTip(wx.ToolTip(self.sequence_dir))
-            self.Layout()
-            
+
             self.current_frame = 0
+            self.tracker.SetMax(self.num_of_frames)
+            
+            self.Layout()
             self.go_to_frame()
         except:
-            pass
-            #TODO: show dialog with invalid sequence
+            wx.MessageBox('Invalid sequence folder', 'Error',
+                           wx.OK | wx.ICON_ERROR)
     
     def go_to_frame(self):
-        pass
+        self.tracker.SetValue(self.current_frame)
+        
+        self.image = wx.Bitmap(self.sequence_dir + "/" + \
+                               str(self.current_frame) + ".jpg")
+        self.scale_image()
+        self.imageControl.SetBitmap(self.image)
+    
+    def OnTrackerChanged(self, event):
+        self.current_frame = self.tracker.GetValue()
+        self.go_to_frame()
     
     def OnLoadSequence(self, event):
         dlg = wx.DirDialog(self, message = "Choose a file",
@@ -185,7 +214,6 @@ class InstancePanel(wx.Panel):
                             )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            print path,
             if os.path.isdir(path):
                 self.sequence_dir = path
                 self.load_sequence()
@@ -200,7 +228,7 @@ class InstancePanel(wx.Panel):
         pass
     
     def OnSaveInstance(self, event):
-        print "save instance"
+        pass
     
     def OnProcessVideo(self, event):
         dlg = wx.FileDialog(self, message = "Choose a file",
@@ -240,9 +268,13 @@ class InstancePanel(wx.Panel):
 
             # This file helps to recover the video that generated the sequence
             instance_description = open(dst_path + "/anonadado.data", "w")
-            instance_description.write(path)
+            instance_description.writelines(
+                [path + "\n", str(int(cap.get(cv.CV_CAP_PROP_FRAME_COUNT)))]
+            )
             instance_description.close()
-            
+
+            # Retrieve each frame and save them in order to be able to have
+            # random access to any frame of the video
             while keepGoing:
                 counter = int(cap.get(cv.CV_CAP_PROP_POS_FRAMES))
                 
@@ -253,27 +285,22 @@ class InstancePanel(wx.Panel):
                 filename = dst_path + "/" + str(counter) + ".jpg"
                 cv2.imwrite(filename, frame)
                 (keepGoing, skip) = progress_dlg.Update(counter)
-
+            
             cap.release()
             progress_dlg.Destroy()
-
+            
             self.sequence_dir = dst_path
             self.load_sequence()
 
         dlg.Destroy()
-        
-    def OnLoadVideo(self, event):
-        return
     
     def OnGoToPrevious(self, event):
-        print "go to previous",
         self.current_frame = max(0, self.current_frame - 1)
-        print self.current_frame
+        self.go_to_frame()
         
     def OnGoToNext(self, event):
-        print "go to next",
         self.current_frame = min(self.num_of_frames, self.current_frame + 1)
-        print self.current_frame
+        self.go_to_frame()
     
     def OnKeyPress(self, event):
         
