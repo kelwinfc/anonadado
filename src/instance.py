@@ -257,13 +257,8 @@ class InstancePanel(wx.Panel):
                         parent=self,
                         style = wx.PD_CAN_ABORT
                         |wx.PD_ELAPSED_TIME
-<<<<<<< HEAD
                         |wx.PD_REMAINING_TIME
                         |wx.PD_ESTIMATED_TIME
-=======
-                        |wx.PD_ESTIMATED_TIME
-                        |wx.PD_REMAINING_TIME
->>>>>>> 3083a19b66cf0328b3a71c48d1d80a63eed16cb5
                         |wx.PD_APP_MODAL
                         |wx.PD_AUTO_HIDE
                         )
