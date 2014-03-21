@@ -34,7 +34,8 @@ class InstancePanel(wx.Panel):
         # Video
         self.rows = 600
         self.cols = 400
-        
+
+        ## Video: Current image
         self.image = wx.Bitmap("test/0.jpg")
         (self.rows, self.cols) = self.image.GetSize()
         factor = 600.0 / self.rows
@@ -42,7 +43,8 @@ class InstancePanel(wx.Panel):
         self.cols *= factor
         self.scale_image()
         self.current_frame = 0
-        
+
+        ## Video: Process video
         self.imageControl = wx.StaticBitmap(self, -1, self.image)
         self.videoFilenameLabel = wx.StaticText(self, label="Preprocess Video:")
         self.videoFilenameButton = \
@@ -51,6 +53,15 @@ class InstancePanel(wx.Panel):
                                              style=wx.NO_BORDER,
                                              pos=(10, 10))
         self.num_of_frames = 0
+        
+        ## Video: Load video
+        self.sequenceLabel = wx.StaticText(self, label="Image sequence:")
+        self.sequenceButton = \
+            wx.BitmapButton(self, id=wx.ID_ANY,
+                            bitmap=wx.Bitmap(cwd() + '/media/open.png'),
+                                             style=wx.NO_BORDER,
+                                             pos=(10, 10))
+        self.sequence_dir = None
         
         # Global commands (Load, Save, New, ...)
         self.newInstanceButton = wx.BitmapButton(self, id=wx.ID_ANY,
@@ -72,13 +83,14 @@ class InstancePanel(wx.Panel):
         self.newInstanceButton.SetToolTip(wx.ToolTip("New empty instance"))
         self.openInstanceButton.SetToolTip(wx.ToolTip("Open instance"))
         self.saveInstanceButton.SetToolTip(wx.ToolTip("Save the instance"))
-    
+        
     def bindControls(self):
         
         self.newInstanceButton.Bind(wx.EVT_BUTTON, self.top_app.OnNewInstance)
         self.openInstanceButton.Bind(wx.EVT_BUTTON, self.top_app.OnLoadInstance)
         self.saveInstanceButton.Bind(wx.EVT_BUTTON, self.top_app.OnSaveInstance)
         self.videoFilenameButton.Bind(wx.EVT_BUTTON, self.OnProcessVideo)
+        self.sequenceButton.Bind(wx.EVT_BUTTON, self.OnLoadSequence)
         
         self.Bind(wx.EVT_CHAR_HOOK, self.OnKeyPress)
         
@@ -102,6 +114,7 @@ class InstancePanel(wx.Panel):
         self.instanceNameSizer = wx.BoxSizer(wx.HORIZONTAL) # Instance name
         self.commandSizer = wx.BoxSizer(wx.HORIZONTAL)      # Commands
         self.videoFilenameSizer = wx.GridSizer(2, 2, 5, 10)
+        self.selectSequenceSizer = wx.BoxSizer(wx.HORIZONTAL)
         
         seq = [
                 # Skeleton
@@ -111,14 +124,23 @@ class InstancePanel(wx.Panel):
                 (self.left_sizer, self.commandSizer, wx.ALIGN_CENTER),
                 (self.left_sizer, self.instanceNameSizer),
                 (self.left_sizer, self.videoFilenameSizer),
+                (self.left_sizer, self.selectSequenceSizer),
                 
                 # Instance Name
                 (self.videoFilenameSizer, self.instanceNameLabel),
-                (self.videoFilenameSizer, self.instanceNameInput),
-                
+                (self.videoFilenameSizer, self.instanceNameInput)
+               ]
+
+        if self.videoFilenameLabel is not None:
+            seq += [
                 # Load Video
                 (self.videoFilenameSizer, self.videoFilenameLabel),
-                (self.videoFilenameSizer, self.videoFilenameButton),
+                (self.videoFilenameSizer, self.videoFilenameButton)]
+        
+        seq += [
+                # Load Sequence
+                (self.selectSequenceSizer, self.sequenceLabel),
+                (self.selectSequenceSizer, self.sequenceButton),
                 
                 # Image
                 (self.imageSizer, self.imageControl),
@@ -139,13 +161,44 @@ class InstancePanel(wx.Panel):
         
         self.SetSizer(self.sizer)
         self.load_instance()
+
+    def load_sequence(self):
+        self.videoFilenameLabel.Hide()
+        self.videoFilenameButton.Hide()
+        self.videoFilenameLabel = None
+        self.videoFilenameButton = None
+        
+        self.sequenceLabel.SetLabel("Image sequence: ..." + \
+                                    self.sequence_dir[-20:])
+        self.sequenceLabel.SetToolTip(wx.ToolTip(self.sequence_dir))
+        self.Layout()
+
+        self.current_frame = 0
+        self.go_to_frame()
+    
+    def go_to_frame(self):
+        pass
+    
+    def OnLoadSequence(self, event):
+        dlg = wx.DirDialog(self, message = "Choose a file",
+                             defaultPath = os.getcwd(),
+                             style=wx.OPEN
+                            )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            print path,
+            if os.path.isdir(path):
+                self.sequence_dir = path
+                self.load_sequence()
+            else:
+                pass
     
     def OnChangeInstanceName(self, event):
         if self.top_app.am is not None:
             self.top_app.am.instance_name = self.instanceNameInput.GetValue()
     
     def OnLoadInstance(self, event):
-        print "load instance"
+        pass
     
     def OnSaveInstance(self, event):
         print "save instance"
@@ -196,11 +249,13 @@ class InstancePanel(wx.Panel):
                 filename = dst_path + "/" + str(counter) + ".jpg"
                 cv2.imwrite(filename, frame)
                 (keepGoing, skip) = progress_dlg.Update(counter)
-            
+
             cap.release()
-            
             progress_dlg.Destroy()
-        
+
+            self.sequence_dir = dst_path
+            self.load_sequence()
+
         dlg.Destroy()
         
     def OnLoadVideo(self, event):
