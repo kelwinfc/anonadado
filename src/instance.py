@@ -9,22 +9,155 @@ import wx
 import tempfile
 import cv2.cv as cv
 import cv2
+import wx.lib.scrolledpanel as scrolled
 
 from annotations import *
+from instance_feature_widgets import *
 
-class InstancePanel(wx.Panel):
+widget_by_name = {"bool": InstanceBoolFeatureWidget,
+                  "string": InstanceStringFeatureWidget,
+                  "float": InstanceFloatFeatureWidget,
+                  "int": InstanceIntFeatureWidget,
+                  "choice": InstanceDefaultValueFeatureWidget,
+                  "bbox": InstanceDefaultValueFeatureWidget,
+                  "vector": InstanceDefaultValueFeatureWidget,
+                  "point": InstanceDefaultValueFeatureWidget
+                }
+
+class InstanceAnnotationWidget(wx.Panel):
+    
+    def __init__(self, parent, an, annotation):
+        wx.Panel.__init__(self, parent, id=wx.NewId())
+        self.top_app = an
+        self.annotation = annotation
+        
+        self.createControls()
+        self.addTooltips()
+        self.bindControls()
+        self.setLayout()
+        self.top_app.instanceTab.load_domain()
+    
+    def createControls(self):
+        # Name
+        self.name = wx.StaticText(self, -1, self.annotation.name, (20, 100))
+        font = wx.Font(16, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
+        self.name.SetFont(font)
+        self.features = []
+        for f in self.annotation.features:
+            self.add_feature(f)
+    
+    def add_feature(self, f):
+        nf = widget_by_name[f.ftype](self, self.top_app, self.annotation, f,
+                                     wx.ID_ANY)
+        self.features.append(nf)
+        
+    def addTooltips(self):
+        pass
+    
+    def bindControls(self):
+        pass
+    
+    def setLayout(self):
+        def addToSizer(sizer, item, alignment=wx.ALL):
+            sizer.Add(item, 0, alignment, 5)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.topSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.featuresSizer = wx.BoxSizer(wx.VERTICAL)
+        
+        seq = [ (self.sizer, self.topSizer),
+                (self.sizer, self.featuresSizer),
+        
+                (self.topSizer, self.name)
+              ]
+        
+        for f in self.features:
+            seq.append( (self.featuresSizer, f) )
+        
+        for n in seq:
+            a = wx.ALL
+            s = n[0]
+            i = n[1]
+            if len(n) == 3:
+                a = n[2]
+            addToSizer(s, i, a)
+        
+        self.SetSizer(self.sizer)
+
+import random
+
+class AnnotationTimeline(wx.Panel):
+
+    """Draw a line to a panel."""
+
+    def __init__(self, parent, id, an):
+        wx.Panel.__init__(self, parent, id, size=(600,40))
+        self.top_app = an
+    
+    def OnPaint(self, event=None):
+        def frame_to_bin(i):
+            return i * 600.0 / self.top_app.instanceTab.num_of_frames
+        
+        def get_points():
+            points = []
+            for idx, a in enumerate(self.top_app.am.sequence):
+                frames = map(lambda x : x.frame, a)
+                points.append( (min(frames), 0) )
+                points.append( (max(frames), 1) )
+            points.sort()
+            return points
+        
+        def get_max_in_frame(points):
+            ret = 0
+            current = 0
+            for (_, v) in points:
+                if v == 0:
+                    current += 1
+                else:
+                    current -= 1
+                ret = max(ret, current)
+            return ret
+        
+        dc = wx.PaintDC(self)
+        dc.Clear()
+        dc.SetPen(wx.Pen("grey",style=wx.TRANSPARENT))
+        dc.SetBrush(wx.Brush("grey", wx.SOLID))
+        
+        dc.DrawLine(0, 40, 600, 40)
+        
+        if self.top_app.am == None:
+            return
+        
+        points = get_points()
+        max_points = get_max_in_frame(points)
+        print points
+        
+        current = 0
+        for idx, (f, v) in enumerate(points):
+            
+            if idx > 0 and current > 0:
+                (pf,_) = points[idx-1]
+                h = int(40 * float(current) / float(max_points))
+                print frame_to_bin(pf)
+                dc.DrawRectangle(frame_to_bin(pf), 40-h, frame_to_bin(f), 40)
+            
+            if v == 0:
+                current += 1
+            else:
+                current -= 1
+
+class InstancePanel(scrolled.ScrolledPanel):
 
     def __init__(self, parent, an):
-        wx.Panel.__init__(self, parent=parent, id=wx.NewId())
+        scrolled.ScrolledPanel.__init__(self, parent=parent, id=wx.NewId(),
+                                        size=(1100,640),
+                                        style=wx.ALWAYS_SHOW_SB)
         self.top_app = an
         
         self.createControls()
         self.addTooltips()
         self.bindControls()
         self.setLayout()
-    
-    def __del__(self):
-        pass
     
     def createControls(self):
         # Instance name
@@ -46,6 +179,7 @@ class InstancePanel(wx.Panel):
 
         ## Video: Process video
         self.imageControl = wx.StaticBitmap(self, -1, self.image)
+        self.timeline = AnnotationTimeline(self, wx.ID_ANY, self.top_app)
         
         self.tracker = wx.Slider(self, id=wx.ID_ANY, value=0, minValue=0,
                                  maxValue=0, size=(600,40),
@@ -67,6 +201,7 @@ class InstancePanel(wx.Panel):
                             bitmap=wx.Bitmap(cwd() + '/media/sequence.png'),
                                              style=wx.NO_BORDER,
                                              pos=(10, 10))
+        self.video_dir = None
         self.sequence_dir = None
         
         # Add Annotation
@@ -76,9 +211,15 @@ class InstancePanel(wx.Panel):
         self.addAnnotationLabel = wx.StaticText(self, wx.ID_ANY,
                                                "Add annotation:")
         self.addAnnotationList = wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition,
-                                           (200, 400), [],
+                                           (200, 100), [],
                                            wx.LB_SINGLE|wx.EXPAND)
+        self.annotationsLabel = wx.StaticText(self, wx.ID_ANY,
+                                               "Annotations:")
+        self.annotationsChoice = wx.Choice(self, id=wx.ID_ANY,
+                                           choices=[])
         self.addAnnotationList.SetSelection(0)
+        
+        self.annotationWidget = None
         
         # Global commands (Load, Save, New, ...)
         self.newInstanceButton = wx.BitmapButton(self, id=wx.ID_ANY,
@@ -90,6 +231,8 @@ class InstancePanel(wx.Panel):
         self.saveInstanceButton = wx.BitmapButton(self, id=wx.ID_ANY,
           bitmap=wx.Bitmap(cwd() + '/media/save.png'), style=wx.NO_BORDER,
                            pos=(10, 10))
+        
+        self.load_instance()
     
     def scale_image(self):
         aux = wx.ImageFromBitmap(self.image)
@@ -141,20 +284,23 @@ class InstancePanel(wx.Panel):
 
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)             # Global
         self.left_sizer = wx.BoxSizer(wx.VERTICAL)          # Left bar
+        self.right_sizer = wx.BoxSizer(wx.VERTICAL)         # Right bar
         self.imageSizer = wx.BoxSizer(wx.VERTICAL)          # Images
         self.commandSizer = wx.BoxSizer(wx.HORIZONTAL)      # Commands
         self.addAnnotationSizer = wx.BoxSizer(wx.VERTICAL)
-        
+        self.annotationsSizer = wx.BoxSizer(wx.VERTICAL)
         self.instanceNameSizer = wx.BoxSizer(wx.HORIZONTAL)
         
         seq = [
                 # Skeleton
                 (self.sizer, self.left_sizer),
                 (self.sizer, self.imageSizer),
-
+                (self.sizer, self.right_sizer),
+                
                 (self.left_sizer, self.commandSizer, wx.ALIGN_CENTER),
                 (self.left_sizer, self.instanceNameSizer),
                 (self.left_sizer, self.addAnnotationSizer),
+                (self.left_sizer, self.annotationsSizer),
                 
                 # Instance Name
                 (self.instanceNameSizer, self.instanceNameLabel),
@@ -164,6 +310,7 @@ class InstancePanel(wx.Panel):
                 (self.imageSizer, self.videoFilenameLabel),
                 (self.imageSizer, self.sequenceLabel),
                 (self.imageSizer, self.imageControl),
+                (self.imageSizer, self.timeline),
                 (self.imageSizer, self.tracker),
 
                 # Commands
@@ -175,9 +322,13 @@ class InstancePanel(wx.Panel):
                
                 # Add annotation
                 (self.addAnnotationSizer, self.addAnnotationLabel),
-                (self.addAnnotationSizer, self.addAnnotationList)
+                (self.addAnnotationSizer, self.addAnnotationList),
+                
+                # Annotations
+                (self.annotationsSizer, self.annotationsLabel),
+                (self.annotationsSizer, self.annotationsChoice)
               ]
-
+        
         for n in seq:
             a = wx.ALL
             s = n[0]
@@ -188,7 +339,8 @@ class InstancePanel(wx.Panel):
 
         self.SetSizer(self.sizer)
         self.load_instance()
-
+        self.SetupScrolling()
+    
     def load_sequence(self):
         try:
             lines = open(self.sequence_dir + "/anonadado.data").readlines()
@@ -199,38 +351,60 @@ class InstancePanel(wx.Panel):
 
             self.sequenceLabel.SetLabel("Sequence: " + self.sequence_dir)
             self.sequenceLabel.SetToolTip(wx.ToolTip(self.sequence_dir))
-
+            
             self.current_frame = 0
             self.tracker.SetMax(self.num_of_frames)
             
-            self.Layout()
             self.go_to_frame()
+            self.Layout()
+        
         except:
             wx.MessageBox('Invalid sequence folder', 'Error',
                            wx.OK | wx.ICON_ERROR)
     
     def go_to_frame(self):
+        if self.num_of_frames == 0 or self.sequence_dir is None:
+            return
         self.tracker.SetValue(self.current_frame)
         
         self.image = wx.Bitmap(self.sequence_dir + "/" + \
                                str(self.current_frame) + ".jpg")
         self.scale_image()
         self.imageControl.SetBitmap(self.image)
+        self.timeline.OnPaint()
+    
+    def select_annotation(self, annotation):
+        if self.annotationWidget is not None:
+            self.annotationWidget.Hide()
+            self.annotationWidget = None
+        
+        self.annotationWidget = InstanceAnnotationWidget(self, self.top_app,
+                                                         annotation)
+        self.right_sizer.Add(self.annotationWidget, 0, wx.ALIGN_LEFT, 5)
+        self.Layout()
+        self.SetupScrolling()
     
     def OnAddAnnotation(self, event):
-        print self.addAnnotationList.GetStringSelection()
+        # TODO volver a poner esto
+        #if self.num_of_frames == 0:
+            #return
+        
+        annotation_label = self.addAnnotationList.GetStringSelection()
+        annotation = self.top_app.am.domain[annotation_label].get_instance()
+        self.select_annotation(annotation)
     
     def OnTrackerChanged(self, event):
         self.current_frame = self.tracker.GetValue()
         self.go_to_frame()
     
     def OnLoadSequence(self, event):
-        dlg = wx.DirDialog(self, message = "Choose a file",
-                             defaultPath = os.getcwd(),
-                             style=wx.OPEN
-                            )
-        if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
+        #dlg = wx.DirDialog(self, message = "Choose a file",
+                             #defaultPath = os.getcwd(),
+                             #style=wx.OPEN
+                            #)
+        #if dlg.ShowModal() == wx.ID_OK:
+            path = "test/0"
+            #path = dlg.GetPath()
             if os.path.isdir(path):
                 self.sequence_dir = path
                 self.load_sequence()
@@ -309,6 +483,7 @@ class InstancePanel(wx.Panel):
             cap.release()
             progress_dlg.Destroy()
             
+            self.video_dir = path
             self.sequence_dir = dst_path
             self.load_sequence()
 
@@ -341,7 +516,30 @@ class InstancePanel(wx.Panel):
                 self.addAnnotationList.Append(k)
                 if k == 0:
                     self.select_label(0)
-        self.Layout()
-    
+        self    .Layout()
+            
     def load_instance(self):
-        pass
+        def balance(x, y):
+            sx = str(x)
+            sy = str(y)
+            while len(sx) < len(sy):
+                sx = "0" + sx
+            return sx
+        
+        if self.top_app.am is None:
+            return
+        
+        self.sequence_dir = self.top_app.am.sequence_filename
+        self.video_dir = self.top_app.am.video_filename
+        self.load_sequence()
+        
+        for idx, a in enumerate(self.top_app.am.sequence):
+            if len(a) > 0:
+                frames = map(lambda x : x.frame, a)
+                min_frame = balance(min(frames), self.num_of_frames)
+                max_frame = balance(max(frames), self.num_of_frames)
+                
+                self.annotationsChoice.Append(
+                    "[" + min_frame + "," + max_frame + "] " + a[0].name)
+        
+        self.go_to_frame()

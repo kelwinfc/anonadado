@@ -237,7 +237,10 @@ class annotation_manager:
         self.domain_filename = None
         self.instance_name = ""
         self.instance_filename = None
-        self.itype = None
+        
+        self.video_filename = None
+        self.sequence_filename = None
+        
         self.sequence = []
         
         if domain_filename is not None:
@@ -269,10 +272,11 @@ class annotation_manager:
             self.parse_domain(i["domain"])
         
         self.instance_name = i["name"]
-        self.itype = i["type"]
-        self.instance_filename = i["filename"]
         self.domain_filename = i["domain"]
         self.sequence = []
+        
+        self.video_filename = i["video_filename"]
+        self.sequence_filename = i["sequence_filename"]
         
         for s in i["sequence"]:
             labels = map(lambda x : x["name"], s)
@@ -313,8 +317,8 @@ class annotation_manager:
     def instance_to_json(self):
         return { "domain" : self.domain_filename,
                  "name" : self.instance_name,
-                 "type" : self.itype,
-                 "filename" : self.instance_filename,
+                 "video_filename" : self.video_filename,
+                 "sequence_filename" : self.sequence_filename,
                  "sequence" : map(lambda x :
                                   map(lambda y: y.to_json(False), x),
                               self.sequence)

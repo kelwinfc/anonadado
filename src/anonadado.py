@@ -99,6 +99,8 @@ class Anonadado(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPaths()[0]
             self.am.parse_instance(path)
+            self.instanceTab.load_instance()
+            self.instanceTab.load_domain()
         dlg.Destroy()
     
     def OnSaveDomain(self, e):
@@ -172,6 +174,9 @@ def main():
     
     if instance_filename is not None:
         am.parse_instance(instance_filename)
+        print "labels:", am.labels
+        a.instanceTab.load_instance()
+        a.domainTab.load_domain()
     
     app.MainLoop()
     

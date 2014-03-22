@@ -56,6 +56,11 @@
                   "name" : "id",
                   "type" : "int",
                   "default" : 42
+              },
+              {
+                  "name" : "height",
+                  "type" : "float",
+                  "default" : 60.5
               }
           ]
         }

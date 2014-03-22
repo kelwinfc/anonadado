@@ -1,8 +1,8 @@
 {
     "domain" : "test/domain.json",
     "name": "dummy",
-    "type": "video",
-    "filename": "test/0.mpg",
+    "video_filename": "test/0.mpg",
+    "sequence_filename": "test/0",
     "sequence" :
     [
         [
@@ -41,7 +41,7 @@
             },
             {
                 "name" : "occlusion",
-                "frame" : 1,
+                "frame" : 100,
                 "features" : [
                     {"name" : "value", "value": true},
                     {"name" : "object", "value": "lens"},
@@ -52,7 +52,7 @@
         [
             {
                 "name" : "occlusion",
-                "frame" : 1,
+                "frame" : 50,
                 "features" : [
                     {"name" : "value", "value": true},
                     {"name" : "object", "value": "lens"},
@@ -61,7 +61,7 @@
             },
             {
                 "name" : "occlusion",
-                "frame" : 2,
+                "frame" : 75,
                 "features" : [
                     {"name" : "value", "value": true},
                     {"name" : "object", "value": "lens"},
@@ -70,7 +70,7 @@
             },
             {
                 "name" : "occlusion",
-                "frame" : 3,
+                "frame" : 100,
                 "features" : [
                     {"name" : "value", "value": true},
                     {"name" : "object", "value": "lens"},
@@ -79,7 +79,7 @@
             },
             {
                 "name" : "occlusion",
-                "frame" : 4,
+                "frame" : 200,
                 "features" : [
                     {"name" : "value", "value": true},
                     {"name" : "object", "value": "lens"},
@@ -147,16 +147,32 @@
         [
             {
                 "name" : "focus",
-                "frame" : 6,
+                "frame" : 1000,
                 "features" : [
-                    {"name" : "value", "value": false}
+                    {"name" : "value", "value": true}
                 ]
             },
             {
                 "name" : "focus",
-                "frame" : 10,
+                "frame" : 6000,
+                "features" : [
+                    {"name" : "value", "value": false}
+                ]
+            }
+        ],
+        [
+            {
+                "name" : "focus",
+                "frame" : 3000,
                 "features" : [
                     {"name" : "value", "value": true}
+                ]
+            },
+            {
+                "name" : "focus",
+                "frame" : 4000,
+                "features" : [
+                    {"name" : "value", "value": false}
                 ]
             }
         ]

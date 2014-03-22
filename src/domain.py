@@ -7,7 +7,7 @@ import wx
 import wx.lib.scrolledpanel as scrolled
 
 from annotations import *
-from feature_widgets import *
+from domain_feature_widgets import *
 
 widget_by_name = {"bool": BoolFeatureWidget,
                   "string": StringFeatureWidget,
