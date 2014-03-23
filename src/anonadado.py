@@ -122,7 +122,22 @@ class Anonadado(wx.Frame):
         dlg.Destroy()
 
     def OnSaveInstance(self, e):
-        pass
+        dlg = wx.FileDialog(self, message = "Save instance",
+                            defaultDir = os.getcwd(),
+                            defaultFile = "",
+                            wildcard = "Json (*.json)|*.json|" \
+                                       "All files (*.*)|*.*",
+                            style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT
+                           )
+        
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPaths()[0]
+
+            f  = open(path, 'w')
+            json.dump(self.am.instance_to_json(), f, indent = 4)
+            f.close()
+        
+        dlg.Destroy()
     
     def OnNewProject(self, e):
         dial = wx.MessageDialog(None, 'Are you sure to create a new project? '\
