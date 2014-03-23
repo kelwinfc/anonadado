@@ -159,7 +159,7 @@ class InstanceBoolFeatureWidget(InstanceDefaultValueFeatureWidget):
     
     def OnChangeValue(self, event):
         name = self.valueInput.GetStringSelection()
-        self.feature.value = name
+        self.feature.value = True if name == "True" else False
     
     def is_valid(self):
         return False

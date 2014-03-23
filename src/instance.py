@@ -172,9 +172,14 @@ class InstanceAnnotationWidget(wx.Panel):
             self.top_app.instanceTab.go_to_frame()
     
     def rmInterestPoint(self, event):
-        pass
-
-import random
+        index = self.top_app.instanceTab.annotationsChoice.GetSelection()
+        annotation = self.top_app.am.rm_point_from_annotation(index,
+                                        self.top_app.instanceTab.current_frame)
+        
+        tmp_frame = self.top_app.instanceTab.current_frame
+        self.top_app.instanceTab.load_instance()
+        self.top_app.instanceTab.select_annotation(annotation)
+        self.top_app.instanceTab.current_frame = tmp_frame
 
 class AnnotationTimeline(wx.Panel):
 
@@ -346,6 +351,13 @@ class InstancePanel(scrolled.ScrolledPanel):
           bitmap=wx.Bitmap(cwd() + '/media/save.png'), style=wx.NO_BORDER,
                            pos=(10, 10))
         
+        self.goToPreviousButton = wx.BitmapButton(self, id=wx.ID_ANY,
+          bitmap=wx.Bitmap(cwd() + '/media/previous.png'), style=wx.NO_BORDER,
+                           pos=(10, 10))
+        self.goToNextButton = wx.BitmapButton(self, id=wx.ID_ANY,
+          bitmap=wx.Bitmap(cwd() + '/media/next.png'), style=wx.NO_BORDER,
+                           pos=(10, 10))
+        
         # Annotation
         self.annotationsChoice = wx.Choice(self, id=wx.ID_ANY,
                                            choices=[])
@@ -361,7 +373,7 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.newInstanceButton.SetToolTip(wx.ToolTip("New empty instance"))
         self.openInstanceButton.SetToolTip(wx.ToolTip("Open instance"))
         self.saveInstanceButton.SetToolTip(wx.ToolTip("Save the instance"))
-
+        
         self.videoFilenameButton.SetToolTip(
             wx.ToolTip("Load Video to be processed"))
         self.sequenceButton.SetToolTip(
@@ -369,6 +381,11 @@ class InstancePanel(scrolled.ScrolledPanel):
         
         self.addAnnotationLabel.SetToolTip(wx.ToolTip("Double click to select"))
         self.addAnnotationList.SetToolTip(wx.ToolTip("Double click to select"))
+        
+        self.goToPreviousButton.SetToolTip(
+            wx.ToolTip("Go to the previous annotation"))
+        self.goToNextButton.SetToolTip(
+            wx.ToolTip("Go to the next annotation"))
     
     def bindControls(self):
         
@@ -384,6 +401,10 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.addAnnotationList.Bind(wx.EVT_LISTBOX_DCLICK, self.OnAddAnnotation)
         self.annotationsChoice.Bind(wx.EVT_CHOICE, self.onSelectAnnotation)
         
+        self.goToPreviousButton.Bind(wx.EVT_BUTTON,
+                                     self.onGoToPreviousAnnotation)
+        self.goToNextButton.Bind(wx.EVT_BUTTON,
+                                 self.onGoToNextAnnotation)
         self.Bind(wx.EVT_CHAR_HOOK, self.OnKeyPress)
         
         
@@ -409,6 +430,7 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.addAnnotationSizer = wx.BoxSizer(wx.VERTICAL)
         self.annotationsSizer = wx.BoxSizer(wx.VERTICAL)
         self.instanceNameSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.subCommandSizer = wx.BoxSizer(wx.HORIZONTAL)
         
         seq = [
                 # Skeleton
@@ -419,6 +441,7 @@ class InstancePanel(scrolled.ScrolledPanel):
                 (self.left_sizer, self.commandSizer, wx.ALIGN_CENTER),
                 (self.left_sizer, self.instanceNameSizer),
                 (self.left_sizer, self.addAnnotationSizer),
+                (self.left_sizer, self.subCommandSizer),
                 (self.left_sizer, self.annotationsSizer),
                 
                 # Instance Name
@@ -439,6 +462,9 @@ class InstancePanel(scrolled.ScrolledPanel):
                 (self.commandSizer, self.videoFilenameButton),
                 (self.commandSizer, self.sequenceButton),
                
+                (self.subCommandSizer, self.goToPreviousButton),
+                (self.subCommandSizer, self.goToNextButton),
+                
                 # Add annotation
                 (self.addAnnotationSizer, self.addAnnotationLabel),
                 (self.addAnnotationSizer, self.addAnnotationList),
@@ -524,9 +550,37 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.Layout()
         self.SetupScrolling()
         
-        print "go to frame", annotation[index].frame
         self.current_frame = annotation[index].frame
         self.go_to_frame()
+    
+    def onGoToPreviousAnnotation(self, event):
+        last = None
+        new_frame = self.current_frame
+        
+        for a in self.top_app.am.sequence:
+            if a[0].frame < self.current_frame:
+                new_frame = a[0].frame
+                last = a
+        
+        if last is not None:
+            self.current_frame = new_frame
+            self.go_to_frame()
+            self.select_annotation(last)
+    
+    def onGoToNextAnnotation(self, event):
+        first = None
+        new_frame = self.current_frame
+        
+        for a in self.top_app.am.sequence:
+            if a[0].frame > self.current_frame:
+                first = a
+                new_frame = a[0].frame
+                break
+        
+        if first is not None:
+            self.current_frame = new_frame
+            self.go_to_frame()
+            self.select_annotation(first)
     
     def onSelectAnnotation(self, event):
         index = self.annotationsChoice.GetSelection()

@@ -360,6 +360,28 @@ class annotation_manager:
         
         return ret
     
+    def rm_point_from_annotation(self, index, frame):
+        
+        seq = self.sequence[index]
+        nearest_left = seq[0]
+        dist = abs(frame - seq[0].frame)
+        inner_index = -1
+        ret = self.sequence[index]
+        
+        for idx, x in enumerate(seq):
+            if frame == x.frame:
+                inner_index = idx
+                break
+        
+        if inner_index != -1 and len(self.sequence[index]) > 1:
+            self.sequence[index] = self.sequence[index][:inner_index] + \
+                                   self.sequence[index][inner_index+1:]
+        
+        self.sequence[index].sort(key=(lambda x : x.frame))
+        self.sort_annotations()
+        
+        return self.sequence[index]
+    
     def get_annotation(self, index):
         return self.sequence[index]
     
