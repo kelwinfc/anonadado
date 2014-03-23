@@ -13,12 +13,14 @@ import wx.lib.scrolledpanel as scrolled
 
 from annotations import *
 from instance_feature_widgets import *
+from utils import *
 
 widget_by_name = {"bool": InstanceBoolFeatureWidget,
                   "string": InstanceStringFeatureWidget,
                   "float": InstanceFloatFeatureWidget,
                   "int": InstanceIntFeatureWidget,
-                  "choice": InstanceDefaultValueFeatureWidget,
+                  "choice": InstanceChoiceFeatureWidget,
+                  
                   "bbox": InstanceDefaultValueFeatureWidget,
                   "vector": InstanceDefaultValueFeatureWidget,
                   "point": InstanceDefaultValueFeatureWidget
@@ -42,6 +44,20 @@ class InstanceAnnotationWidget(wx.Panel):
         self.name = wx.StaticText(self, -1, self.annotation.name, (20, 100))
         font = wx.Font(16, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
         self.name.SetFont(font)
+        
+        self.addInterestPointButton = wx.BitmapButton(self, id=wx.ID_ANY,
+                bitmap=wx.Bitmap(cwd() + "/media/pin_add.png"),
+                                 style=wx.NO_BORDER, pos=(10,10))
+        self.rmInterestPointButton = wx.BitmapButton(self, id=wx.ID_ANY,
+                bitmap=wx.Bitmap(cwd() + "/media/pin_rm.png"),
+                                 style=wx.NO_BORDER, pos=(10,10))
+        self.prevInterestPointButton = wx.BitmapButton(self, id=wx.ID_ANY,
+                bitmap=wx.Bitmap(cwd() + "/media/pin_prev.png"),
+                                 style=wx.NO_BORDER, pos=(10,10))
+        self.nextInterestPointButton = wx.BitmapButton(self, id=wx.ID_ANY,
+                bitmap=wx.Bitmap(cwd() + "/media/pin_next.png"),
+                                 style=wx.NO_BORDER, pos=(10,10))
+        
         self.features = []
         for f in self.annotation.features:
             self.add_feature(f)
@@ -52,10 +68,21 @@ class InstanceAnnotationWidget(wx.Panel):
         self.features.append(nf)
         
     def addTooltips(self):
-        pass
+        self.addInterestPointButton.SetToolTip(
+                                        wx.ToolTip("Add annotation point"))
+        self.rmInterestPointButton.SetToolTip(
+                                        wx.ToolTip("Remove annotation point"))
+        self.prevInterestPointButton.SetToolTip(
+                                wx.ToolTip("Go to previous annotation point"))
+        self.nextInterestPointButton.SetToolTip(
+                                wx.ToolTip("Go to next annotation point"))
     
     def bindControls(self):
-        pass
+        self.addInterestPointButton.Bind(wx.EVT_BUTTON, self.addAnnotationPoint)
+        self.rmInterestPointButton.Bind(wx.EVT_BUTTON, self.rmInterestPoint)
+        self.nextInterestPointButton.Bind(wx.EVT_BUTTON, self.nextInterestPoint)
+        self.prevInterestPointButton.Bind(wx.EVT_BUTTON,
+                                          self.previousInterestPoint)
     
     def setLayout(self):
         def addToSizer(sizer, item, alignment=wx.ALL):
@@ -64,10 +91,17 @@ class InstanceAnnotationWidget(wx.Panel):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.topSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.featuresSizer = wx.BoxSizer(wx.VERTICAL)
+        self.commandSizer = wx.BoxSizer(wx.HORIZONTAL)
         
-        seq = [ (self.sizer, self.topSizer),
+        seq = [ (self.sizer, self.commandSizer),
+                (self.sizer, self.topSizer),
                 (self.sizer, self.featuresSizer),
-        
+                
+                (self.commandSizer, self.addInterestPointButton),
+                (self.commandSizer, self.rmInterestPointButton),
+                (self.commandSizer, self.prevInterestPointButton),
+                (self.commandSizer, self.nextInterestPointButton),
+                
                 (self.topSizer, self.name)
               ]
         
@@ -83,6 +117,62 @@ class InstanceAnnotationWidget(wx.Panel):
             addToSizer(s, i, a)
         
         self.SetSizer(self.sizer)
+    
+    def addAnnotationPoint(self, event):
+        index = self.top_app.instanceTab.annotationsChoice.GetSelection()
+        annotation = self.top_app.am.add_point_to_annotation(index,
+                                        self.top_app.instanceTab.current_frame)
+        
+        tmp_frame = self.top_app.instanceTab.current_frame
+        self.top_app.instanceTab.load_instance()
+        self.top_app.instanceTab.select_annotation(annotation)
+        self.top_app.instanceTab.current_frame = tmp_frame
+    
+    def previousInterestPoint(self, event):
+        index = self.top_app.instanceTab.annotationsChoice.GetSelection()
+        frame = self.top_app.instanceTab.current_frame
+        
+        next_frame = None
+        current_frame = self.top_app.instanceTab.current_frame
+        annotation = None
+        idx = 0
+        
+        for nidx, x in enumerate(self.top_app.am.sequence[index]):
+            if x.frame < current_frame:
+                next_frame = x.frame
+                annotation = x
+                idx = nidx
+        
+        if next_frame is not None:
+            self.top_app.instanceTab.current_frame = next_frame
+            self.top_app.instanceTab.select_annotation(
+                                        self.top_app.am.sequence[index])
+            self.top_app.instanceTab.go_to_frame()
+    
+    def nextInterestPoint(self, event):
+        index = self.top_app.instanceTab.annotationsChoice.GetSelection()
+        frame = self.top_app.instanceTab.current_frame
+        
+        next_frame = None
+        current_frame = self.top_app.instanceTab.current_frame
+        annotation = None
+        idx = 0
+        
+        for nidx, x in enumerate(self.top_app.am.sequence[index]):
+            if x.frame > current_frame:
+                next_frame = x.frame
+                annotation = x
+                idx = nidx
+                break
+        
+        if next_frame is not None:
+            self.top_app.instanceTab.current_frame = next_frame
+            self.top_app.instanceTab.select_annotation(
+                                        self.top_app.am.sequence[index])
+            self.top_app.instanceTab.go_to_frame()
+    
+    def rmInterestPoint(self, event):
+        pass
 
 import random
 
@@ -91,12 +181,37 @@ class AnnotationTimeline(wx.Panel):
     """Draw a line to a panel."""
 
     def __init__(self, parent, id, an):
-        wx.Panel.__init__(self, parent, id, size=(600,40))
+        wx.Panel.__init__(self, parent, id, size=(600,50))
         self.top_app = an
     
+    def frame_to_bin(self, i):
+            return int(i * 600.0 / self.top_app.instanceTab.num_of_frames)
+    
+    def OnPaintSelection(self, event=None):
+        if self.top_app.am is None:
+            return
+        
+        if len(self.top_app.am.sequence) > 0:
+            sel_i = self.top_app.instanceTab.annotationsChoice.GetSelection()
+            frames = [x.frame for x in self.top_app.am.sequence[sel_i]]
+            
+            left_f  = min(frames)
+            right_f = max(frames)
+            
+            self.dc.SetPen(wx.Pen("red"))
+            self.dc.DrawLine(self.frame_to_bin(left_f), 45,
+                             self.frame_to_bin(right_f), 45)
+            
+            for f in frames:
+                self.dc.DrawLine(self.frame_to_bin(f), 40,
+                                 self.frame_to_bin(f), 50)
+        
+        self.dc.SetPen(wx.Pen("black"))
+        current = self.top_app.instanceTab.current_frame
+        self.dc.DrawLine(self.frame_to_bin(current), 0,
+                             self.frame_to_bin(current), 50)
+    
     def OnPaint(self, event=None):
-        def frame_to_bin(i):
-            return i * 600.0 / self.top_app.instanceTab.num_of_frames
         
         def get_points():
             points = []
@@ -118,33 +233,36 @@ class AnnotationTimeline(wx.Panel):
                 ret = max(ret, current)
             return ret
         
-        dc = wx.PaintDC(self)
-        dc.Clear()
-        dc.SetPen(wx.Pen("grey",style=wx.TRANSPARENT))
-        dc.SetBrush(wx.Brush("grey", wx.SOLID))
-        
-        dc.DrawLine(0, 40, 600, 40)
+        self.dc = wx.PaintDC(self)
+        self.dc.Clear()
+        self.dc.SetPen(wx.Pen("grey"))
+        self.dc.SetBrush(wx.Brush("grey", wx.SOLID))
         
         if self.top_app.am == None:
             return
         
         points = get_points()
         max_points = get_max_in_frame(points)
-        print points
         
         current = 0
         for idx, (f, v) in enumerate(points):
             
             if idx > 0 and current > 0:
                 (pf,_) = points[idx-1]
-                h = int(40 * float(current) / float(max_points))
-                print frame_to_bin(pf)
-                dc.DrawRectangle(frame_to_bin(pf), 40-h, frame_to_bin(f), 40)
-            
+                pf = int(self.frame_to_bin(pf))
+                f = int(self.frame_to_bin(f))
+                
+                if pf == f:
+                    f += 1
+                
+                h = int(40.0 * float(current) / float(max_points))
+                self.dc.DrawRectangle(pf, 40-h, f-pf, h)
             if v == 0:
                 current += 1
             else:
                 current -= 1
+        
+        self.OnPaintSelection()
 
 class InstancePanel(scrolled.ScrolledPanel):
 
@@ -205,8 +323,6 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.sequence_dir = None
         
         # Add Annotation
-        if self.top_app.am is not None:
-            print self.top_app.am.domain.keys()
         
         self.addAnnotationLabel = wx.StaticText(self, wx.ID_ANY,
                                                "Add annotation:")
@@ -215,8 +331,6 @@ class InstancePanel(scrolled.ScrolledPanel):
                                            wx.LB_SINGLE|wx.EXPAND)
         self.annotationsLabel = wx.StaticText(self, wx.ID_ANY,
                                                "Annotations:")
-        self.annotationsChoice = wx.Choice(self, id=wx.ID_ANY,
-                                           choices=[])
         self.addAnnotationList.SetSelection(0)
         
         self.annotationWidget = None
@@ -231,6 +345,10 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.saveInstanceButton = wx.BitmapButton(self, id=wx.ID_ANY,
           bitmap=wx.Bitmap(cwd() + '/media/save.png'), style=wx.NO_BORDER,
                            pos=(10, 10))
+        
+        # Annotation
+        self.annotationsChoice = wx.Choice(self, id=wx.ID_ANY,
+                                           choices=[])
         
         self.load_instance()
     
@@ -264,6 +382,7 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.tracker.Bind(wx.EVT_SCROLL_CHANGED, self.OnTrackerChanged)
         
         self.addAnnotationList.Bind(wx.EVT_LISTBOX_DCLICK, self.OnAddAnnotation)
+        self.annotationsChoice.Bind(wx.EVT_CHOICE, self.onSelectAnnotation)
         
         self.Bind(wx.EVT_CHAR_HOOK, self.OnKeyPress)
         
@@ -345,6 +464,8 @@ class InstancePanel(scrolled.ScrolledPanel):
         try:
             lines = open(self.sequence_dir + "/anonadado.data").readlines()
             vpath = lines[0]
+            self.video_dir = vpath
+            
             self.num_of_frames = int(lines[1])
             self.videoFilenameLabel.SetLabel("Video: " + vpath)
             self.videoFilenameLabel.SetToolTip(wx.ToolTip(vpath))
@@ -352,12 +473,16 @@ class InstancePanel(scrolled.ScrolledPanel):
             self.sequenceLabel.SetLabel("Sequence: " + self.sequence_dir)
             self.sequenceLabel.SetToolTip(wx.ToolTip(self.sequence_dir))
             
-            self.current_frame = 0
+            if self.current_frame is None:
+                self.current_frame = 0
+            
             self.tracker.SetMax(self.num_of_frames)
             
             self.go_to_frame()
             self.Layout()
-        
+            
+            self.top_app.am.sequence_filename = self.sequence_dir
+            self.top_app.am.video_filename = self.video_dir
         except:
             wx.MessageBox('Invalid sequence folder', 'Error',
                            wx.OK | wx.ICON_ERROR)
@@ -373,25 +498,54 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.imageControl.SetBitmap(self.image)
         self.timeline.OnPaint()
     
-    def select_annotation(self, annotation):
+    def select_annotation(self, annotation, change_selection=True):
+        frames = [ x.frame for x in annotation ]
+        min_dist = self.num_of_frames * 2
+        index = 0
+        print "current frame", self.current_frame
+        for idx, x in enumerate(frames):
+            next_dist = abs(x - self.current_frame)
+            if next_dist < min_dist:
+                min_dist = next_dist
+                index = idx
+        
+        if change_selection:
+            self.annotationsChoice.SetSelection(
+                    self.top_app.am.get_annotation_index(annotation[index]))
+        
         if self.annotationWidget is not None:
             self.annotationWidget.Hide()
             self.annotationWidget = None
         
         self.annotationWidget = InstanceAnnotationWidget(self, self.top_app,
-                                                         annotation)
+                                                         annotation[index])
         self.right_sizer.Add(self.annotationWidget, 0, wx.ALIGN_LEFT, 5)
+        
         self.Layout()
         self.SetupScrolling()
+        
+        print "go to frame", annotation[index].frame
+        self.current_frame = annotation[index].frame
+        self.go_to_frame()
+    
+    def onSelectAnnotation(self, event):
+        index = self.annotationsChoice.GetSelection()
+        annotation = self.top_app.am.get_annotation(index)
+        
+        first_point = min([x.frame for x in annotation])
+        self.current_frame = first_point
+        self.select_annotation(annotation, False)
     
     def OnAddAnnotation(self, event):
-        # TODO volver a poner esto
-        #if self.num_of_frames == 0:
-            #return
+        if self.num_of_frames == 0:
+            return
         
         annotation_label = self.addAnnotationList.GetStringSelection()
         annotation = self.top_app.am.domain[annotation_label].get_instance()
-        self.select_annotation(annotation)
+        annotation.frame = self.current_frame
+        self.top_app.am.add_annotation(annotation)
+        self.load_instance()
+        self.select_annotation([annotation])
     
     def OnTrackerChanged(self, event):
         self.current_frame = self.tracker.GetValue()
@@ -403,7 +557,7 @@ class InstancePanel(scrolled.ScrolledPanel):
                              #style=wx.OPEN
                             #)
         #if dlg.ShowModal() == wx.ID_OK:
-            path = "test/0"
+            path = "/home/kelwinfc/Escritorio/anonadado/test/0"
             #path = dlg.GetPath()
             if os.path.isdir(path):
                 self.sequence_dir = path
@@ -486,7 +640,7 @@ class InstancePanel(scrolled.ScrolledPanel):
             self.video_dir = path
             self.sequence_dir = dst_path
             self.load_sequence()
-
+        
         dlg.Destroy()
     
     def OnGoToPrevious(self, event):
@@ -516,22 +670,26 @@ class InstancePanel(scrolled.ScrolledPanel):
                 self.addAnnotationList.Append(k)
                 if k == 0:
                     self.select_label(0)
-        self    .Layout()
-            
+        self.Layout()
+    
     def load_instance(self):
-        def balance(x, y):
-            sx = str(x)
-            sy = str(y)
-            while len(sx) < len(sy):
-                sx = "0" + sx
-            return sx
         
         if self.top_app.am is None:
             return
         
         self.sequence_dir = self.top_app.am.sequence_filename
         self.video_dir = self.top_app.am.video_filename
+        
         self.load_sequence()
+        
+        self.update_annotations()
+    
+    def update_annotations(self):
+        
+        if self.top_app.am is None:
+            return
+        
+        self.annotationsChoice.SetItems([])
         
         for idx, a in enumerate(self.top_app.am.sequence):
             if len(a) > 0:

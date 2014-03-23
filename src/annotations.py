@@ -326,3 +326,48 @@ class annotation_manager:
     
     def add_label(s):
         self.domain[s.name] = s
+    
+    def sort_annotations(self):
+        self.sequence.sort(key=(lambda x : x[0].frame))
+    
+    def add_annotation(self, annotation):
+        self.sequence.append([annotation])
+        self.sort_annotations()
+    
+    def add_point_to_annotation(self, index, frame):
+        seq = self.sequence[index]
+        nearest_left = seq[0]
+        dist = abs(frame - seq[0].frame)
+        ret = self.sequence[index]
+        
+        for x in seq:
+            if x.frame <= frame:
+                new_dist = abs(frame - x.frame)
+                if new_dist < dist:
+                    nearest_left = x
+                    dist = new_dist
+        
+        if nearest_left.frame == frame:
+            return ret
+        
+        new_instance = nearest_left.get_instance()
+        new_instance.frame = frame
+        ret = seq
+        
+        self.sequence[index].append(new_instance)
+        self.sequence[index].sort(key=(lambda x : x.frame))
+        self.sort_annotations()
+        
+        return ret
+    
+    def get_annotation(self, index):
+        return self.sequence[index]
+    
+    def get_annotation_index(self, annotation):
+        an = annotation
+        
+        for idx, x in enumerate(self.sequence):
+            if an in x:
+                return idx
+        
+        return 0

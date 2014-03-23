@@ -338,3 +338,6 @@ class DomainPanel(wx.Panel):
                 if k == 0:
                     self.select_label(0)
             self.domainNameInput.SetValue( self.top_app.am.domain_name )
+        
+            if self.top_app.instanceTab is not None:
+                self.top_app.instanceTab.load_domain()

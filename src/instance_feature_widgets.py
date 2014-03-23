@@ -239,3 +239,72 @@ class InstanceIntFeatureWidget(InstanceFloatFeatureWidget):
             return True
         self.changeValidator(False)
         return False
+
+class InstanceChoiceFeatureWidget(InstanceDefaultValueFeatureWidget):
+    def __init__(self, parent, an, annotation, feature, id):
+        self.choices = feature.values
+        InstanceDefaultValueFeatureWidget.__init__(self, parent, an, annotation,
+                                                   feature, id)
+
+    def createControls(self):
+        InstanceDefaultValueFeatureWidget.createControls(self)
+        self.validValue.Hide()
+        self.valueInput.Hide()
+        self.valueInput = wx.Choice(self, id=wx.ID_ANY,
+                                    choices=self.choices)
+
+        for idx, x in enumerate(self.choices):
+            if (self.feature.value is not None and x == self.feature.value) or\
+               (self.feature.value is None and x == self.feature.default):
+                self.valueInput.SetSelection(idx)
+                break
+    
+    def bindControls(self):
+        InstanceDefaultValueFeatureWidget.bindControls(self)
+        self.valueInput.Bind(wx.EVT_CHOICE, self.OnChangeValue)
+
+    def setLayout(self, extra_values=[]):
+        def addToSizer(sizer, item, alignment=wx.ALL):
+            sizer.Add(item, 0, alignment, 5)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.nameSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.subSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        self.valueSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        seq = [(self.sizer, self.nameSizer),
+               (self.sizer, self.subSizer),
+
+               (self.nameSizer, self.name),
+               
+               (self.subSizer, self.valueSizer),
+               
+               (self.valueSizer, self.valueLabel),
+               (self.valueSizer, self.valueInput)
+              ]
+
+        for n in seq:
+            a = wx.ALL
+            s = n[0]
+            i = n[1]
+            if len(n) == 3:
+                a = n[2]
+            addToSizer(s, i, a)
+
+        self.SetSizer(self.sizer)
+
+    def OnAddChoice(self, event):
+        s = self.addChoiceInput.GetValue()
+        print s
+
+        if not s in self.choices:
+            self.feature.values.append(s)
+
+            selected_label = \
+                self.top_app.domainTab.domainLabelsList.GetSelection()
+            self.top_app.domainTab.select_label(selected_label)
+            self.Layout()
+
+    def OnChangeValue(self, event):
+        self.feature.value = self.valueInput.GetStringSelection()
