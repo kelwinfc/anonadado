@@ -805,9 +805,19 @@ class InstancePanel(scrolled.ScrolledPanel):
                     f.value = f.default
                 
                 bbox = f.value
-                print bbox
-                dc.DrawRectangle( bbox[0][0], bbox[0][1],
-                                  bbox[1][0], bbox[1][1]
-                                )
+                dc.DrawRectangle(bbox[0][0], bbox[0][1], bbox[1][0], bbox[1][1])
+            elif f.get_type() == "vector":
+                if f.value == None:
+                    f.value = f.default
+                
+                v = f.value
+                dc.DrawLine(v[0][0], v[0][1], v[1][0], v[1][1])
+            elif f.get_type() == "point":
+                if f.value == None:
+                    f.value = f.default
+                
+                p = f.value
+                dc.DrawCircle(p[0], p[1], 5)
+        
         dc.SelectObject(wx.NullBitmap)
         self.imageControl.SetBitmap(self.image)
