@@ -330,6 +330,13 @@ class annotation_manager:
     def sort_annotations(self):
         self.sequence.sort(key=(lambda x : x[0].frame))
     
+    def rm_annotation(self, index):
+        if index + 1 == len(self.sequence):
+            self.sequence = self.sequence[:len(self.sequence)-1]
+        else:
+            self.sequence = self.sequence[:index] + self.sequence[index+1:]
+        self.sort_annotations()
+    
     def add_annotation(self, annotation):
         self.sequence.append([annotation])
         self.sort_annotations()

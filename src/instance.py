@@ -357,6 +357,9 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.goToNextButton = wx.BitmapButton(self, id=wx.ID_ANY,
           bitmap=wx.Bitmap(cwd() + '/media/next.png'), style=wx.NO_BORDER,
                            pos=(10, 10))
+        self.rmAnnotation = wx.BitmapButton(self, id=wx.ID_ANY,
+          bitmap=wx.Bitmap(cwd() + '/media/remove.png'), style=wx.NO_BORDER,
+                           pos=(10, 10))
         
         # Annotation
         self.annotationsChoice = wx.Choice(self, id=wx.ID_ANY,
@@ -386,6 +389,8 @@ class InstancePanel(scrolled.ScrolledPanel):
             wx.ToolTip("Go to the previous annotation"))
         self.goToNextButton.SetToolTip(
             wx.ToolTip("Go to the next annotation"))
+        self.rmAnnotation.SetToolTip(
+            wx.ToolTip("Remove the selected annotation"))
     
     def bindControls(self):
         
@@ -405,8 +410,10 @@ class InstancePanel(scrolled.ScrolledPanel):
                                      self.onGoToPreviousAnnotation)
         self.goToNextButton.Bind(wx.EVT_BUTTON,
                                  self.onGoToNextAnnotation)
-        self.Bind(wx.EVT_CHAR_HOOK, self.OnKeyPress)
+        self.rmAnnotation.Bind(wx.EVT_BUTTON,
+                                 self.onRmAnnotation)
         
+        self.Bind(wx.EVT_CHAR_HOOK, self.OnKeyPress)
         
         for x in vars(self):
             try:
@@ -441,7 +448,7 @@ class InstancePanel(scrolled.ScrolledPanel):
                 (self.left_sizer, self.commandSizer, wx.ALIGN_CENTER),
                 (self.left_sizer, self.instanceNameSizer),
                 (self.left_sizer, self.addAnnotationSizer),
-                (self.left_sizer, self.subCommandSizer),
+                (self.left_sizer, self.subCommandSizer, wx.ALIGN_CENTER),
                 (self.left_sizer, self.annotationsSizer),
                 
                 # Instance Name
@@ -464,6 +471,7 @@ class InstancePanel(scrolled.ScrolledPanel):
                
                 (self.subCommandSizer, self.goToPreviousButton),
                 (self.subCommandSizer, self.goToNextButton),
+                (self.subCommandSizer, self.rmAnnotation),
                 
                 # Add annotation
                 (self.addAnnotationSizer, self.addAnnotationLabel),
@@ -567,7 +575,7 @@ class InstancePanel(scrolled.ScrolledPanel):
             self.go_to_frame()
             self.select_annotation(last)
     
-    def onGoToNextAnnotation(self, event):
+    def onGoToNextAnnotation(self, event=None):
         first = None
         new_frame = self.current_frame
         
@@ -589,6 +597,16 @@ class InstancePanel(scrolled.ScrolledPanel):
         first_point = min([x.frame for x in annotation])
         self.current_frame = first_point
         self.select_annotation(annotation, False)
+    
+    def onRmAnnotation(self, event):
+        index = self.annotationsChoice.GetSelection()
+        
+        if self.top_app is not None and self.top_app.am is not None:
+            self.top_app.am.rm_annotation(index)
+            
+            if len(self.top_app.am.sequence) > 0:
+                self.select_annotation(self.top_app.am.sequence[0])
+        self.load_instance()
     
     def OnAddAnnotation(self, event):
         if self.num_of_frames == 0:
