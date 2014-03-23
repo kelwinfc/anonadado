@@ -21,9 +21,9 @@ widget_by_name = {"bool": InstanceBoolFeatureWidget,
                   "int": InstanceIntFeatureWidget,
                   "choice": InstanceChoiceFeatureWidget,
                   
-                  "bbox": InstanceDefaultValueFeatureWidget,
-                  "vector": InstanceDefaultValueFeatureWidget,
-                  "point": InstanceDefaultValueFeatureWidget
+                  "bbox": InstanceBoundingBoxFeatureWidget,
+                  "vector": InstanceVectorFeatureWidget,
+                  "point": InstancePointFeatureWidget
                 }
 
 class InstanceAnnotationWidget(wx.Panel):
@@ -494,6 +494,9 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.SetSizer(self.sizer)
         self.load_instance()
         self.SetupScrolling()
+        
+        self.imageControl.Bind(wx.EVT_LEFT_DOWN, self.OnMousePress)
+        self.imageControl.Bind(wx.EVT_RIGHT_DOWN, self.OnMouseRelease)
     
     def load_sequence(self):
         try:
@@ -780,6 +783,67 @@ class InstancePanel(scrolled.ScrolledPanel):
         
         self.go_to_frame()
     
+    def OnMousePress(self, e):
+        
+        if self.top_app is None or self.top_app.am is None:
+            return
+        
+        index = self.annotationsChoice.GetSelection()
+        annotation = self.top_app.am.get_annotation(index)
+        poi = self.get_annotation_point(annotation)
+        
+        annotation = self.top_app.am.sequence[index][poi]
+        
+        for f in annotation.features:
+            if not f.is_active:
+                continue
+            
+            if f.get_type() == "bbox" or f.get_type() == "vector":
+                if f.value == None:
+                    f.value = f.default
+                
+                f.value[0][0] = e.GetX()
+                f.value[0][1] = e.GetY()
+            
+            elif f.get_type() == "point":
+                if f.value == None:
+                    f.value = f.default
+                
+                f.value[0] = e.GetX()
+                f.value[1] = e.GetY()
+        
+        self.go_to_frame()
+    
+    def OnMouseRelease(self, e):
+        if self.top_app is None or self.top_app.am is None:
+            return
+        
+        index = self.annotationsChoice.GetSelection()
+        annotation = self.top_app.am.get_annotation(index)
+        poi = self.get_annotation_point(annotation)
+        
+        annotation = self.top_app.am.sequence[index][poi]
+        
+        for f in annotation.features:
+            if not f.is_active:
+                continue
+            
+            if f.get_type() == "bbox" or f.get_type() == "vector":
+                if f.value == None:
+                    f.value = f.default
+                
+                f.value[1][0] = e.GetX()
+                f.value[1][1] = e.GetY()
+            
+            elif f.get_type() == "point":
+                if f.value == None:
+                    f.value = f.default
+                
+                f.value[0] = e.GetX()
+                f.value[1] = e.GetY()
+        
+        self.go_to_frame()
+    
     def Draw(self, e=None):
         if self.top_app is None or self.top_app.am is None:
             return
@@ -790,8 +854,6 @@ class InstancePanel(scrolled.ScrolledPanel):
         
         bit = wx.EmptyBitmap(517,524)
         dc = wx.MemoryDC(self.image)
-        dc.SetPen(wx.Pen(wx.GREEN, 2))
-        dc.SetBrush(wx.Brush("grey", wx.TRANSPARENT))
         
         index = self.annotationsChoice.GetSelection()
         annotation = self.top_app.am.get_annotation(index)
@@ -800,12 +862,21 @@ class InstancePanel(scrolled.ScrolledPanel):
         annotation = self.top_app.am.sequence[index][poi]
         
         for f in annotation.features:
+            if f.is_active:
+                dc.SetPen(wx.Pen(wx.RED, 3))
+                dc.SetBrush(wx.Brush(wx.RED, wx.TRANSPARENT))
+            else:
+                dc.SetPen(wx.Pen(wx.GREEN, 2))
+                dc.SetBrush(wx.Brush(wx.GREEN, wx.TRANSPARENT))
+            
             if f.get_type() == "bbox":
                 if f.value == None:
                     f.value = f.default
                 
                 bbox = f.value
-                dc.DrawRectangle(bbox[0][0], bbox[0][1], bbox[1][0], bbox[1][1])
+                dc.DrawRectangle(bbox[0][0], bbox[0][1],
+                                 bbox[1][0] - bbox[0][0],
+                                 bbox[1][1] - bbox[0][1])
             elif f.get_type() == "vector":
                 if f.value == None:
                     f.value = f.default

@@ -7,12 +7,14 @@ class feature:
         self.default = None
         self.ftype = None
         self.value = None
+        self.is_active = False
     
     def __init__(self, json, default=None):
         self.name = json.get("name", "")
         self.default = json.get("default", default)
         self.ftype = json.get("type", None)
         self.value = json.get("value", None)
+        self.is_active = False
     
     def parse_value(self, json):
         pass

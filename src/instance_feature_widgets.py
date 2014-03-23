@@ -308,3 +308,109 @@ class InstanceChoiceFeatureWidget(InstanceDefaultValueFeatureWidget):
 
     def OnChangeValue(self, event):
         self.feature.value = self.valueInput.GetStringSelection()
+
+class InstanceBoundingBoxFeatureWidget(InstanceDefaultValueFeatureWidget):
+    def __init__(self, parent, an, annotation, feature, id):
+        InstanceDefaultValueFeatureWidget.__init__(self, parent, an, annotation,
+                                                   feature, id)
+        
+        if self.feature.value is None:
+            self.feature.value = self.feature.default
+    
+    def createControls(self):
+        InstanceDefaultValueFeatureWidget.createControls(self)
+
+        self.valueInput.Hide()
+        self.valueLabel.Hide()
+        self.validValue.Hide()
+        
+        self.SetActiveButton = wx.Button(self, wx.ID_ANY, label="Focus")
+    
+    def setLayout(self):
+        def addToSizer(sizer, item, alignment=wx.ALL):
+            sizer.Add(item, 0, alignment, 5)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.nameSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        seq = [(self.sizer, self.nameSizer),
+               (self.sizer, self.SetActiveButton),
+               (self.nameSizer, self.name)
+              ]
+
+        for n in seq:
+            a = wx.ALL
+            s = n[0]
+            i = n[1]
+            if len(n) == 3:
+                a = n[2]
+            addToSizer(s, i, a)
+
+        self.SetSizer(self.sizer)
+
+    def bindControls(self):
+        InstanceDefaultValueFeatureWidget.bindControls(self)
+        self.SetActiveButton.Bind(wx.EVT_BUTTON, self.OnSetActive)
+    
+    def OnSetActive(self, event):
+        for f in self.annotation.features:
+            f.is_active = False
+        self.feature.is_active = True
+        self.top_app.instanceTab.go_to_frame()
+    
+class InstanceVectorFeatureWidget(InstanceBoundingBoxFeatureWidget):
+    def __init__(self, parent, an, annotation, feature, id):
+        InstanceBoundingBoxFeatureWidget.__init__(self, parent, an, annotation,
+                                                  feature, id)
+
+    def createControls(self):
+        InstanceBoundingBoxFeatureWidget.createControls(self)
+
+class InstancePointFeatureWidget(InstanceBoundingBoxFeatureWidget):
+    def __init__(self, parent, an, annotation, feature, id):
+        InstanceDefaultValueFeatureWidget.__init__(self, parent, an, annotation,
+                                                   feature, id)
+        
+        if self.feature.value is None:
+            self.feature.value = self.feature.default
+    
+    def createControls(self):
+        InstanceDefaultValueFeatureWidget.createControls(self)
+
+        self.valueInput.Hide()
+        self.valueLabel.Hide()
+        self.validValue.Hide()
+        
+        self.SetActiveButton = wx.Button(self, wx.ID_ANY, label="Focus")
+    
+    def setLayout(self):
+        def addToSizer(sizer, item, alignment=wx.ALL):
+            sizer.Add(item, 0, alignment, 5)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.nameSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        seq = [(self.sizer, self.nameSizer),
+               (self.sizer, self.SetActiveButton),
+               (self.nameSizer, self.name)
+              ]
+
+        for n in seq:
+            a = wx.ALL
+            s = n[0]
+            i = n[1]
+            if len(n) == 3:
+                a = n[2]
+            addToSizer(s, i, a)
+
+        self.SetSizer(self.sizer)
+
+    def bindControls(self):
+        InstanceDefaultValueFeatureWidget.bindControls(self)
+        self.SetActiveButton.Bind(wx.EVT_BUTTON, self.OnSetActive)
+    
+    def OnSetActive(self, event):
+        for f in self.annotation.features:
+            f.is_active = False
+        self.feature.is_active = True
+        self.top_app.instanceTab.go_to_frame()
