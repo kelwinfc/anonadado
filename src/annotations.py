@@ -42,6 +42,9 @@ class feature:
     def merge(self, a, l, i, r):
         if i > (l+r)/2:
             self.value = a.value
+    
+    def get_type(self):
+        return "feature"
 
 class bool_feature(feature):
     def __init__(self, json):
@@ -49,6 +52,9 @@ class bool_feature(feature):
     
     def get_instance(self):
         return bool_feature(self.to_json())
+    
+    def get_type(self):
+        return "bool"
 
 class str_feature(feature):
     def __init__(self, json):
@@ -56,6 +62,9 @@ class str_feature(feature):
     
     def get_instance(self):
         return str_feature(self.to_json())
+    
+    def get_type(self):
+        return "str"
 
 class float_feature(feature):
     def __init__(self, json):
@@ -69,6 +78,9 @@ class float_feature(feature):
         left_rate = 1.0 - right_rate
         
         self.value = left_rate * self.value + right_rate * a.value
+    
+    def get_type(self):
+        return "float"
 
 class int_feature(float_feature):
     def __init__(self, json):
@@ -80,6 +92,9 @@ class int_feature(float_feature):
     def merge(self, a, l, i, r):
         float_feature.merge(self, a, l, i, r)
         self.value = int(self.value)
+    
+    def get_type(self):
+        return "int"
 
 class choice_feature(feature):
     def __init__(self, json):
@@ -103,6 +118,9 @@ class choice_feature(feature):
 
     def get_instance(self):
         return choice_feature(self.to_json())
+    
+    def get_type(self):
+        return "choice"
 
 class bbox_feature(feature):
     def __init__(self, json):
@@ -126,6 +144,9 @@ class bbox_feature(feature):
                 ret[x][y] = int( left_rate * self.value[x][y] + \
                                         right_rate * a.value[x][y] )
         self.value = ret
+    
+    def get_type(self):
+        return "bbox"
 
 class vector_feature(bbox_feature):
     def __init__(self, json):
@@ -133,6 +154,9 @@ class vector_feature(bbox_feature):
     
     def get_instance(self):
         return vector_feature(self.to_json())
+    
+    def get_type(self):
+        return "vector"
 
 class point_feature(feature):
     def __init__(self, json):
@@ -155,6 +179,9 @@ class point_feature(feature):
             ret[x] = int( left_rate * self.value[x] + \
                           right_rate * a.value[x] )
         self.value = ret
+    
+    def get_type(self):
+        return "point"
 
 class_by_name = {"bool": bool_feature,
                  "string": str_feature,

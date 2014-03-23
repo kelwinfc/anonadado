@@ -302,6 +302,7 @@ class InstancePanel(scrolled.ScrolledPanel):
 
         ## Video: Process video
         self.imageControl = wx.StaticBitmap(self, -1, self.image)
+        #self.imageControl2 = wx.StaticBitmap(self, -1, self.image)
         self.timeline = AnnotationTimeline(self, wx.ID_ANY, self.top_app)
         
         self.tracker = wx.Slider(self, id=wx.ID_ANY, value=0, minValue=0,
@@ -366,7 +367,7 @@ class InstancePanel(scrolled.ScrolledPanel):
                                            choices=[])
         
         self.load_instance()
-    
+        
     def scale_image(self):
         aux = wx.ImageFromBitmap(self.image)
         aux = aux.Scale(self.rows, self.cols, wx.IMAGE_QUALITY_HIGH)
@@ -531,17 +532,22 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.scale_image()
         self.imageControl.SetBitmap(self.image)
         self.timeline.OnPaint()
+        self.Draw()
     
-    def select_annotation(self, annotation, change_selection=True):
+    def get_annotation_point(self, annotation):
         frames = [ x.frame for x in annotation ]
         min_dist = self.num_of_frames * 2
         index = 0
-        print "current frame", self.current_frame
+        
         for idx, x in enumerate(frames):
             next_dist = abs(x - self.current_frame)
             if next_dist < min_dist:
                 min_dist = next_dist
                 index = idx
+        return index
+    
+    def select_annotation(self, annotation, change_selection=True):
+        index = self.get_annotation_point(annotation)
         
         if change_selection:
             self.annotationsChoice.SetSelection(
@@ -556,6 +562,7 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.right_sizer.Add(self.annotationWidget, 0, wx.ALIGN_LEFT, 5)
         
         self.Layout()
+        
         self.SetupScrolling()
         
         self.current_frame = annotation[index].frame
@@ -624,13 +631,13 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.go_to_frame()
     
     def OnLoadSequence(self, event):
-        #dlg = wx.DirDialog(self, message = "Choose a file",
-                             #defaultPath = os.getcwd(),
-                             #style=wx.OPEN
-                            #)
-        #if dlg.ShowModal() == wx.ID_OK:
-            path = "/home/kelwinfc/Escritorio/anonadado/test/0"
-            #path = dlg.GetPath()
+        dlg = wx.DirDialog(self, message = "Choose a file",
+                             defaultPath = os.getcwd(),
+                             style=wx.OPEN
+                            )
+        if dlg.ShowModal() == wx.ID_OK:
+            #path = "/home/kelwinfc/Escritorio/anonadado/test/0"
+            path = dlg.GetPath()
             if os.path.isdir(path):
                 self.sequence_dir = path
                 self.load_sequence()
@@ -745,7 +752,6 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.Layout()
     
     def load_instance(self):
-        
         if self.top_app.am is None:
             return
         
@@ -773,3 +779,35 @@ class InstancePanel(scrolled.ScrolledPanel):
                     "[" + min_frame + "," + max_frame + "] " + a[0].name)
         
         self.go_to_frame()
+    
+    def Draw(self, e=None):
+        if self.top_app is None or self.top_app.am is None:
+            return
+        
+        self.image = wx.Bitmap(self.sequence_dir + "/" + \
+                              str(self.current_frame) + ".jpg")
+        self.scale_image()
+        
+        bit = wx.EmptyBitmap(517,524)
+        dc = wx.MemoryDC(self.image)
+        dc.SetPen(wx.Pen(wx.GREEN, 2))
+        dc.SetBrush(wx.Brush("grey", wx.TRANSPARENT))
+        
+        index = self.annotationsChoice.GetSelection()
+        annotation = self.top_app.am.get_annotation(index)
+        poi = self.get_annotation_point(annotation)
+        
+        annotation = self.top_app.am.sequence[index][poi]
+        
+        for f in annotation.features:
+            if f.get_type() == "bbox":
+                if f.value == None:
+                    f.value = f.default
+                
+                bbox = f.value
+                print bbox
+                dc.DrawRectangle( bbox[0][0], bbox[0][1],
+                                  bbox[1][0], bbox[1][1]
+                                )
+        dc.SelectObject(wx.NullBitmap)
+        self.imageControl.SetBitmap(self.image)
