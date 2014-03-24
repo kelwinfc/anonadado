@@ -279,6 +279,7 @@ class InstancePanel(scrolled.ScrolledPanel):
                                         size=(1100, 640),
                                         style=wx.ALWAYS_SHOW_SB)
         self.top_app = an
+        self.speed = 1
 
         self.createControls()
         self.addTooltips()
@@ -733,11 +734,12 @@ class InstancePanel(scrolled.ScrolledPanel):
         dlg.Destroy()
 
     def OnGoToPrevious(self, event):
-        self.current_frame = max(0, self.current_frame - 1)
+        self.current_frame = max(0, self.current_frame - self.speed)
         self.go_to_frame()
 
     def OnGoToNext(self, event):
-        self.current_frame = min(self.num_of_frames, self.current_frame + 1)
+        self.current_frame = min(self.num_of_frames,
+                                 self.current_frame + self.speed)
         self.go_to_frame()
 
     def OnKeyPress(self, event):
