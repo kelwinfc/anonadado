@@ -610,12 +610,13 @@ class InstancePanel(scrolled.ScrolledPanel):
     
     def onRmAnnotation(self, event):
         index = self.annotationsChoice.GetSelection()
+        if self.top_app is None or self.top_app.am is None or index < 0:
+            return
         
-        if self.top_app is not None and self.top_app.am is not None:
-            self.top_app.am.rm_annotation(index)
-            
-            if len(self.top_app.am.sequence) > 0:
-                self.select_annotation(self.top_app.am.sequence[0])
+        self.top_app.am.rm_annotation(index)
+
+        if len(self.top_app.am.sequence) > 0:
+            self.select_annotation(self.top_app.am.sequence[0])
         self.load_instance()
     
     def OnAddAnnotation(self, event):

@@ -7,6 +7,7 @@ from annotations import *
 import wx
 import wx.lib.intctrl as intctrl
 
+
 class InstanceFeatureWidget(wx.Panel):
     def __init__(self, parent, an, annotation, feature, id):
         wx.Panel.__init__(self, parent, id)
@@ -20,7 +21,7 @@ class InstanceFeatureWidget(wx.Panel):
         self.setInitialValues()
         self.bindControls()
         self.setLayout()
-    
+
     def addTooltips(self):
         pass
 
@@ -36,7 +37,7 @@ class InstanceFeatureWidget(wx.Panel):
             label=self.feature.name + " (" + self.feature.ftype + ")")
         font = wx.Font(12, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
         self.name.SetFont(font)
-    
+
     def setInitialValues(self):
         pass
 
@@ -53,7 +54,7 @@ class InstanceFeatureWidget(wx.Panel):
         seq = [(self.sizer, self.nameSizer),
                (self.nameSizer, self.name)
               ]
-        
+
         for n in seq:
             a = wx.ALL
             s = n[0]
@@ -64,11 +65,12 @@ class InstanceFeatureWidget(wx.Panel):
 
         self.SetSizer(self.sizer)
 
+
 class InstanceDefaultValueFeatureWidget(InstanceFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         self.default = str(feature.default)
         self.value = str(feature.value) if feature.value is not None else None
-        
+
         InstanceFeatureWidget.__init__(self, parent, an, annotation,
                                        feature, id)
         self.changeValidator(self.is_valid())
@@ -83,7 +85,7 @@ class InstanceDefaultValueFeatureWidget(InstanceFeatureWidget):
                                               else self.default,
                                         style=wx.TE_PROCESS_ENTER)
         self.validValue = wx.StaticBitmap(self, id=wx.ID_ANY)
-    
+
     def bindControls(self):
         InstanceFeatureWidget.bindControls(self)
         self.valueInput.Bind(wx.EVT_TEXT, self.OnChangeValue)
@@ -101,7 +103,7 @@ class InstanceDefaultValueFeatureWidget(InstanceFeatureWidget):
                (self.sizer, self.valueSizer),
 
                (self.nameSizer, self.name),
-               
+
                (self.valueSizer, self.valueLabel),
                (self.valueSizer, self.valueInput),
                (self.valueSizer, self.validValue)
@@ -125,21 +127,22 @@ class InstanceDefaultValueFeatureWidget(InstanceFeatureWidget):
             self.validValue.SetBitmap(wx.Bitmap(cwd() + '/media/ok.png'))
         else:
             self.validValue.SetBitmap(wx.Bitmap(cwd() + '/media/remove.png'))
-    
+
     def is_valid(self):
         self.changeValidator(True)
         return True
 
+
 class InstanceBoolFeatureWidget(InstanceDefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
-        InstanceDefaultValueFeatureWidget.__init__(self, parent, an, annotation,
-                                                   feature, id)
+        InstanceDefaultValueFeatureWidget.__init__(self, parent, an,
+                                                   annotation, feature, id)
         self.valueInput.Hide()
         self.validValue.Hide()
         self.valueInput = wx.Choice(self, id=wx.ID_ANY,
                                       choices=["True", "False"])
         self.valueInput.Bind(wx.EVT_CHOICE, self.OnChangeValue)
-        
+
         if self.feature.value is not None:
             if self.feature.value:
                 self.valueInput.SetSelection(0)
@@ -151,31 +154,33 @@ class InstanceBoolFeatureWidget(InstanceDefaultValueFeatureWidget):
                 if x == self.feature.default:
                     self.valueInput.SetSelection(idx)
                     break
-        
+
         self.setLayout()
-    
+
     def addTooltips(self):
         pass
-    
+
     def OnChangeValue(self, event):
         name = self.valueInput.GetStringSelection()
         self.feature.value = True if name == "True" else False
-    
+
     def is_valid(self):
         return False
 
+
 class InstanceStringFeatureWidget(InstanceDefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
-        InstanceDefaultValueFeatureWidget.__init__(self, parent, an, annotation,
-                                                   feature, id)
+        InstanceDefaultValueFeatureWidget.__init__(self, parent, an,
+                                                   annotation, feature, id)
 
     def OnChangeValue(self, event):
         self.feature.value = self.valueInput.GetValue()
 
+
 class InstanceFloatFeatureWidget(InstanceDefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
-        InstanceDefaultValueFeatureWidget.__init__(self, parent, an, annotation,
-                                                   feature, id)
+        InstanceDefaultValueFeatureWidget.__init__(self, parent, an,
+                                                   annotation, feature, id)
 
     def OnChangeValue(self, event):
         new_value = self.valueInput.GetValue()
@@ -183,13 +188,13 @@ class InstanceFloatFeatureWidget(InstanceDefaultValueFeatureWidget):
         for ch in new_value:
             if ch in "0123456789.,+-e":
                 aux_value += ch
-        
+
         if new_value != aux_value:
             self.valueInput.SetValue(aux_value)
-            
+
         if self.is_valid():
             self.feature.value = float(aux_value)
-    
+
     def is_valid(self):
         def is_number(s):
             try:
@@ -206,6 +211,7 @@ class InstanceFloatFeatureWidget(InstanceDefaultValueFeatureWidget):
         self.changeValidator(False)
         return False
 
+
 class InstanceIntFeatureWidget(InstanceFloatFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         InstanceFloatFeatureWidget.__init__(self, parent, an, annotation,
@@ -217,13 +223,13 @@ class InstanceIntFeatureWidget(InstanceFloatFeatureWidget):
         for ch in new_value:
             if ch in "0123456789+-":
                 aux_value += ch
-        
+
         if new_value != aux_value:
             self.valueInput.SetValue(aux_value)
 
         if self.is_valid():
             self.feature.value = int(aux_value)
-    
+
     def is_valid(self):
         def is_number(s):
             try:
@@ -231,7 +237,7 @@ class InstanceIntFeatureWidget(InstanceFloatFeatureWidget):
             except ValueError, TypeError:
                 return False
             return True
-        
+
         new_value = self.valueInput.GetValue().capitalize()
 
         if is_number(str(new_value)):
@@ -240,11 +246,12 @@ class InstanceIntFeatureWidget(InstanceFloatFeatureWidget):
         self.changeValidator(False)
         return False
 
+
 class InstanceChoiceFeatureWidget(InstanceDefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         self.choices = feature.values
-        InstanceDefaultValueFeatureWidget.__init__(self, parent, an, annotation,
-                                                   feature, id)
+        InstanceDefaultValueFeatureWidget.__init__(self, parent, an,
+                                                   annotation, feature, id)
 
     def createControls(self):
         InstanceDefaultValueFeatureWidget.createControls(self)
@@ -258,7 +265,7 @@ class InstanceChoiceFeatureWidget(InstanceDefaultValueFeatureWidget):
                (self.feature.value is None and x == self.feature.default):
                 self.valueInput.SetSelection(idx)
                 break
-    
+
     def bindControls(self):
         InstanceDefaultValueFeatureWidget.bindControls(self)
         self.valueInput.Bind(wx.EVT_CHOICE, self.OnChangeValue)
@@ -270,16 +277,16 @@ class InstanceChoiceFeatureWidget(InstanceDefaultValueFeatureWidget):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.nameSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.subSizer = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         self.valueSizer = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         seq = [(self.sizer, self.nameSizer),
                (self.sizer, self.subSizer),
 
                (self.nameSizer, self.name),
-               
+
                (self.subSizer, self.valueSizer),
-               
+
                (self.valueSizer, self.valueLabel),
                (self.valueSizer, self.valueInput)
               ]
@@ -309,30 +316,31 @@ class InstanceChoiceFeatureWidget(InstanceDefaultValueFeatureWidget):
     def OnChangeValue(self, event):
         self.feature.value = self.valueInput.GetStringSelection()
 
+
 class InstanceBoundingBoxFeatureWidget(InstanceDefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
-        InstanceDefaultValueFeatureWidget.__init__(self, parent, an, annotation,
-                                                   feature, id)
-        
+        InstanceDefaultValueFeatureWidget.__init__(self, parent, an,
+                                                   annotation, feature, id)
+
         if self.feature.value is None:
             self.feature.value = self.feature.default
-    
+
     def createControls(self):
         InstanceDefaultValueFeatureWidget.createControls(self)
 
         self.valueInput.Hide()
         self.valueLabel.Hide()
         self.validValue.Hide()
-        
+
         self.SetActiveButton = wx.Button(self, wx.ID_ANY, label="Focus")
-    
+
     def setLayout(self):
         def addToSizer(sizer, item, alignment=wx.ALL):
             sizer.Add(item, 0, alignment, 5)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.nameSizer = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         seq = [(self.sizer, self.nameSizer),
                (self.sizer, self.SetActiveButton),
                (self.nameSizer, self.name)
@@ -351,13 +359,14 @@ class InstanceBoundingBoxFeatureWidget(InstanceDefaultValueFeatureWidget):
     def bindControls(self):
         InstanceDefaultValueFeatureWidget.bindControls(self)
         self.SetActiveButton.Bind(wx.EVT_BUTTON, self.OnSetActive)
-    
+
     def OnSetActive(self, event):
         for f in self.annotation.features:
             f.is_active = False
         self.feature.is_active = True
         self.top_app.instanceTab.go_to_frame()
-    
+
+
 class InstanceVectorFeatureWidget(InstanceBoundingBoxFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         InstanceBoundingBoxFeatureWidget.__init__(self, parent, an, annotation,
@@ -366,30 +375,31 @@ class InstanceVectorFeatureWidget(InstanceBoundingBoxFeatureWidget):
     def createControls(self):
         InstanceBoundingBoxFeatureWidget.createControls(self)
 
+
 class InstancePointFeatureWidget(InstanceBoundingBoxFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
-        InstanceDefaultValueFeatureWidget.__init__(self, parent, an, annotation,
-                                                   feature, id)
-        
+        InstanceDefaultValueFeatureWidget.__init__(self, parent, an,
+                                                   annotation, feature, id)
+
         if self.feature.value is None:
             self.feature.value = self.feature.default
-    
+
     def createControls(self):
         InstanceDefaultValueFeatureWidget.createControls(self)
 
         self.valueInput.Hide()
         self.valueLabel.Hide()
         self.validValue.Hide()
-        
+
         self.SetActiveButton = wx.Button(self, wx.ID_ANY, label="Focus")
-    
+
     def setLayout(self):
         def addToSizer(sizer, item, alignment=wx.ALL):
             sizer.Add(item, 0, alignment, 5)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.nameSizer = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         seq = [(self.sizer, self.nameSizer),
                (self.sizer, self.SetActiveButton),
                (self.nameSizer, self.name)
@@ -408,7 +418,7 @@ class InstancePointFeatureWidget(InstanceBoundingBoxFeatureWidget):
     def bindControls(self):
         InstanceDefaultValueFeatureWidget.bindControls(self)
         self.SetActiveButton.Bind(wx.EVT_BUTTON, self.OnSetActive)
-    
+
     def OnSetActive(self, event):
         for f in self.annotation.features:
             f.is_active = False

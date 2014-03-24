@@ -7,6 +7,7 @@ from annotations import *
 import wx
 import wx.lib.intctrl as intctrl
 
+
 class FeatureWidget(wx.Panel):
     def __init__(self, parent, an, annotation, feature, id):
         wx.Panel.__init__(self, parent, id)
@@ -41,28 +42,28 @@ class FeatureWidget(wx.Panel):
         self.removeButton = \
             wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
                             bitmap=wx.Bitmap(cwd() + '/media/remove.png'),
-                            pos=(10,10))
+                            pos=(10, 10))
 
         if len(self.annotation.features) > 0 and self.get_feature_index() > 0:
             self.moveUpButton = \
                 wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
                                 bitmap=wx.Bitmap(cwd() + '/media/up.png'),
-                                pos=(10,10))
+                                pos=(10, 10))
         else:
             self.moveUpButton = \
                 wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
-                                pos=(10,10))
+                                pos=(10, 10))
 
         if len(self.annotation.features) > 0 and \
                 self.get_feature_index() + 1 < len(self.annotation.features):
             self.moveDownButton = \
                 wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
                                 bitmap=wx.Bitmap(cwd() + '/media/down.png'),
-                                pos=(10,10))
+                                pos=(10, 10))
         else:
             self.moveDownButton = \
                 wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
-                                pos=(10,10))
+                                pos=(10, 10))
 
     def setInitialValues(self):
         pass
@@ -126,6 +127,7 @@ class FeatureWidget(wx.Panel):
             label = self.top_app.domainTab.domainLabelsList.GetSelection()
             self.top_app.domainTab.select_label(label)
 
+
 class DefaultValueFeatureWidget(FeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         self.default = str(feature.default)
@@ -144,7 +146,7 @@ class DefaultValueFeatureWidget(FeatureWidget):
         FeatureWidget.bindControls(self)
         self.Bind(wx.EVT_TEXT, self.OnChangeDefault,
                   id=self.defaultInput.GetId())
-    
+
     def setLayout(self, extra_values=[]):
 
         def addToSizer(sizer, item, alignment=wx.ALL):
@@ -190,6 +192,7 @@ class DefaultValueFeatureWidget(FeatureWidget):
         self.changeValidator(True)
         return True
 
+
 class BoolFeatureWidget(DefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         DefaultValueFeatureWidget.__init__(self, parent, an, annotation,
@@ -199,22 +202,23 @@ class BoolFeatureWidget(DefaultValueFeatureWidget):
         self.defaultInput = wx.Choice(self, id=wx.ID_ANY,
                                       choices=["True", "False"])
         self.defaultInput.Bind(wx.EVT_CHOICE, self.OnChangeDefault)
-        
+
         for idx, x in enumerate([True, False]):
             if x == self.feature.default:
                 self.defaultInput.SetSelection(idx)
                 break
         self.setLayout()
-    
+
     def addTooltips(self):
         pass
-    
+
     def OnChangeDefault(self, event):
         name = self.defaultInput.GetStringSelection()
         self.feature.default = name
-    
+
     def is_valid(self):
         return False
+
 
 class StringFeatureWidget(DefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
@@ -223,6 +227,7 @@ class StringFeatureWidget(DefaultValueFeatureWidget):
 
     def OnChangeDefault(self, event):
         self.feature.default = self.defaultInput.GetValue()
+
 
 class FloatFeatureWidget(DefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
@@ -235,13 +240,13 @@ class FloatFeatureWidget(DefaultValueFeatureWidget):
         for ch in new_value:
             if ch in "0123456789.,+-e":
                 aux_value += ch
-        
+
         if new_value != aux_value:
             self.defaultInput.SetValue(aux_value)
-            
+
         if self.is_valid():
             self.feature.default = float(aux_value)
-    
+
     def is_valid(self):
         def is_number(s):
             try:
@@ -258,6 +263,7 @@ class FloatFeatureWidget(DefaultValueFeatureWidget):
         self.changeValidator(False)
         return False
 
+
 class IntFeatureWidget(FloatFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         FloatFeatureWidget.__init__(self, parent, an, annotation,
@@ -269,13 +275,13 @@ class IntFeatureWidget(FloatFeatureWidget):
         for ch in new_value:
             if ch in "0123456789+-":
                 aux_value += ch
-        
+
         if new_value != aux_value:
             self.defaultInput.SetValue(aux_value)
 
         if self.is_valid():
             self.feature.default = int(aux_value)
-    
+
     def is_valid(self):
         def is_number(s):
             try:
@@ -283,7 +289,7 @@ class IntFeatureWidget(FloatFeatureWidget):
             except ValueError, TypeError:
                 return False
             return True
-        
+
         new_value = self.defaultInput.GetValue().capitalize()
 
         if is_number(str(new_value)):
@@ -291,6 +297,7 @@ class IntFeatureWidget(FloatFeatureWidget):
             return True
         self.changeValidator(False)
         return False
+
 
 class ChoiceFeatureWidget(DefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
@@ -321,7 +328,7 @@ class ChoiceFeatureWidget(DefaultValueFeatureWidget):
         self.ChoiceLabel = wx.StaticText(self, label="Values:")
         self.ChoiceList = wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition,
                                      (150, 100), self.choices,
-                                     wx.LB_SINGLE|wx.EXPAND)
+                                     wx.LB_SINGLE | wx.EXPAND)
 
     def bindControls(self):
         DefaultValueFeatureWidget.bindControls(self)
@@ -393,6 +400,7 @@ class ChoiceFeatureWidget(DefaultValueFeatureWidget):
         name = self.defaultInput.GetStringSelection()
         self.feature.default = name
 
+
 class BoundingBoxFeatureWidget(DefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         DefaultValueFeatureWidget.__init__(self, parent, an, annotation,
@@ -413,10 +421,10 @@ class BoundingBoxFeatureWidget(DefaultValueFeatureWidget):
         self.LowerRightXLabel = wx.StaticText(self, label="X")
         self.LowerRightYLabel = wx.StaticText(self, label="Y")
 
-        self.UpperLeftXInput = intctrl.IntCtrl(self, size=( 50, -1 ))
-        self.UpperLeftYInput = intctrl.IntCtrl(self, size=( 50, -1 ))
-        self.LowerRightXInput = intctrl.IntCtrl(self, size=( 50, -1 ))
-        self.LowerRightYInput = intctrl.IntCtrl(self, size=( 50, -1 ))
+        self.UpperLeftXInput = intctrl.IntCtrl(self, size=(50, -1))
+        self.UpperLeftYInput = intctrl.IntCtrl(self, size=(50, -1))
+        self.LowerRightXInput = intctrl.IntCtrl(self, size=(50, -1))
+        self.LowerRightYInput = intctrl.IntCtrl(self, size=(50, -1))
 
         self.UpperLeftXInput.SetValue(self.feature.default[0][0])
         self.UpperLeftYInput.SetValue(self.feature.default[0][1])
@@ -481,6 +489,7 @@ class BoundingBoxFeatureWidget(DefaultValueFeatureWidget):
                     v[x][y].SetValue(-v[x][y].GetValue())
                 self.feature.default[x][y] = v[x][y].GetValue()
 
+
 class VectorFeatureWidget(BoundingBoxFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
         BoundingBoxFeatureWidget.__init__(self, parent, an, annotation,
@@ -490,6 +499,7 @@ class VectorFeatureWidget(BoundingBoxFeatureWidget):
         BoundingBoxFeatureWidget.createControls(self)
         self.UpperLeftLabel.SetLabel("Start:")
         self.LowerRightLabel.SetLabel("End:  ")
+
 
 class PointFeatureWidget(DefaultValueFeatureWidget):
     def __init__(self, parent, an, annotation, feature, id):
@@ -505,10 +515,10 @@ class PointFeatureWidget(DefaultValueFeatureWidget):
 
         self.XLabel = wx.StaticText(self, label="X")
         self.YLabel = wx.StaticText(self, label="Y")
-        
-        self.XInput = intctrl.IntCtrl(self, size=( 50, -1 ))
-        self.YInput = intctrl.IntCtrl(self, size=( 50, -1 ))
-        
+
+        self.XInput = intctrl.IntCtrl(self, size=(50, -1))
+        self.YInput = intctrl.IntCtrl(self, size=(50, -1))
+
         self.XInput.SetValue(self.feature.default[0])
         self.YInput.SetValue(self.feature.default[1])
 
@@ -519,10 +529,10 @@ class PointFeatureWidget(DefaultValueFeatureWidget):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.nameSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.pSizer = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         seq = [(self.sizer, self.nameSizer),
                (self.sizer, self.pSizer),
-               
+
                (self.nameSizer, self.name),
                (self.nameSizer, self.removeButton),
                (self.nameSizer, self.moveDownButton),
