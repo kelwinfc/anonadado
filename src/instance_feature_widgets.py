@@ -150,7 +150,6 @@ class InstanceBoolFeatureWidget(InstanceDefaultValueFeatureWidget):
                 self.valueInput.SetSelection(1)
         else:
             for idx, x in enumerate([True, False]):
-                print x, self.feature.default, x == self.feature.default
                 if x == self.feature.default:
                     self.valueInput.SetSelection(idx)
                     break
@@ -361,9 +360,12 @@ class InstanceBoundingBoxFeatureWidget(InstanceDefaultValueFeatureWidget):
         self.SetActiveButton.Bind(wx.EVT_BUTTON, self.OnSetActive)
 
     def OnSetActive(self, event):
-        for f in self.annotation.features:
-            f.is_active = False
-        self.feature.is_active = True
+        if not self.feature.is_active:
+            for f in self.annotation.features:
+                f.is_active = False
+        
+        self.feature.is_active = not self.feature.is_active
+        
         self.top_app.instanceTab.go_to_frame()
 
 

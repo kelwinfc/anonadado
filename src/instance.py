@@ -10,6 +10,7 @@ import tempfile
 import cv2.cv as cv
 import cv2
 import wx.lib.scrolledpanel as scrolled
+import copy
 
 from annotations import *
 from instance_feature_widgets import *
@@ -510,24 +511,20 @@ class InstancePanel(scrolled.ScrolledPanel):
             lines = open(self.sequence_dir + "/anonadado.data").readlines()
             vpath = lines[0]
             self.video_dir = vpath
-
             self.num_of_frames = int(lines[1])
             self.videoFilenameLabel.SetLabel("Video: " + vpath)
             self.videoFilenameLabel.SetToolTip(wx.ToolTip(vpath))
-
             self.sequenceLabel.SetLabel("Sequence: " + self.sequence_dir)
             self.sequenceLabel.SetToolTip(wx.ToolTip(self.sequence_dir))
-
+            
             if self.current_frame is None:
                 self.current_frame = 0
-
+            
             self.tracker.SetMax(self.num_of_frames)
-
-            self.go_to_frame()
-            self.Layout()
-
             self.top_app.am.sequence_filename = self.sequence_dir
             self.top_app.am.video_filename = self.video_dir
+            self.Layout()
+            self.go_to_frame()
         except:
             wx.MessageBox('Invalid sequence folder', 'Error',
                            wx.OK | wx.ICON_ERROR)
@@ -535,49 +532,50 @@ class InstancePanel(scrolled.ScrolledPanel):
     def go_to_frame(self):
         if self.num_of_frames == 0 or self.sequence_dir is None:
             return
+        
         self.tracker.SetValue(self.current_frame)
-
         self.image = wx.Bitmap(self.sequence_dir + "/" + \
                                str(self.current_frame) + ".jpg")
+        
         self.scale_image()
         self.imageControl.SetBitmap(self.image)
         self.timeline.OnPaint()
         self.Draw()
-
+    
     def get_annotation_point(self, annotation):
         frames = [x.frame for x in annotation]
         min_dist = self.num_of_frames * 2
         index = 0
-
+        
         for idx, x in enumerate(frames):
             next_dist = abs(x - self.current_frame)
-            if next_dist < min_dist:
+            if next_dist < min_dist and x <= self.current_frame:
                 min_dist = next_dist
                 index = idx
         return index
 
     def select_annotation(self, annotation, change_selection=True):
         index = self.get_annotation_point(annotation)
-
+        
         if change_selection:
             self.annotationsChoice.SetSelection(
                     self.top_app.am.get_annotation_index(annotation[index]))
-
+        
         if self.annotationWidget is not None:
             self.annotationWidget.Hide()
             self.annotationWidget = None
-
+        
         self.annotationWidget = InstanceAnnotationWidget(self, self.top_app,
                                                          annotation[index])
         self.right_sizer.Add(self.annotationWidget, 0, wx.ALIGN_LEFT, 5)
-
+        
         self.Layout()
-
+        
         self.SetupScrolling()
-
+        
         self.current_frame = annotation[index].frame
         self.go_to_frame()
-
+    
     def onGoToPreviousAnnotation(self, event):
         last = None
         new_frame = self.current_frame
@@ -629,7 +627,7 @@ class InstancePanel(scrolled.ScrolledPanel):
     def OnAddAnnotation(self, event):
         if self.num_of_frames == 0:
             return
-
+        
         annotation_label = self.addAnnotationList.GetStringSelection()
         annotation = self.top_app.am.domain[annotation_label].get_instance()
         annotation.frame = self.current_frame
@@ -809,18 +807,17 @@ class InstancePanel(scrolled.ScrolledPanel):
 
             if f.get_type() == "bbox" or f.get_type() == "vector":
                 if f.value == None:
-                    f.value = f.default
-
+                    f.value = [ [x for x in y] for y in f.default ]
+                
                 f.value[0][0] = e.GetX()
                 f.value[0][1] = e.GetY()
-
+            
             elif f.get_type() == "point":
                 if f.value == None:
-                    f.value = f.default
+                    f.value = copy.copy(f.default)
 
                 f.value[0] = e.GetX()
                 f.value[1] = e.GetY()
-
         self.go_to_frame()
 
     def OnMouseRelease(self, e):
@@ -832,25 +829,26 @@ class InstancePanel(scrolled.ScrolledPanel):
         poi = self.get_annotation_point(annotation)
 
         annotation = self.top_app.am.sequence[index][poi]
-
+        
         for f in annotation.features:
             if not f.is_active:
                 continue
 
             if f.get_type() == "bbox" or f.get_type() == "vector":
                 if f.value == None:
-                    f.value = f.default
-
+                    f.value = [ [x for x in y] for y in f.default ]
+                
                 f.value[1][0] = e.GetX()
                 f.value[1][1] = e.GetY()
 
             elif f.get_type() == "point":
                 if f.value == None:
-                    f.value = f.default
+                    f.value = list(f.default)
 
                 f.value[0] = e.GetX()
                 f.value[1] = e.GetY()
-
+            break
+        
         self.go_to_frame()
 
     def Draw(self, e=None):
@@ -863,41 +861,44 @@ class InstancePanel(scrolled.ScrolledPanel):
 
         bit = wx.EmptyBitmap(517, 524)
         dc = wx.MemoryDC(self.image)
-
+        
+        
         index = self.annotationsChoice.GetSelection()
-        annotation = self.top_app.am.get_annotation(index)
-        poi = self.get_annotation_point(annotation)
+        
+        if index >= 0 and len(self.top_app.am.sequence[index]) > 0:
+            annotation = self.top_app.am.get_annotation(index)
+            poi = self.get_annotation_point(annotation)
 
-        annotation = self.top_app.am.sequence[index][poi]
+            annotation = self.top_app.am.sequence[index][poi]
 
-        for f in annotation.features:
-            if f.is_active:
-                dc.SetPen(wx.Pen(wx.RED, 3))
-                dc.SetBrush(wx.Brush(wx.RED, wx.TRANSPARENT))
-            else:
-                dc.SetPen(wx.Pen(wx.GREEN, 2))
-                dc.SetBrush(wx.Brush(wx.GREEN, wx.TRANSPARENT))
+            for f in annotation.features:
+                if f.is_active:
+                    dc.SetPen(wx.Pen(wx.RED, 3))
+                    dc.SetBrush(wx.Brush(wx.RED, wx.TRANSPARENT))
+                else:
+                    dc.SetPen(wx.Pen(wx.GREEN, 2))
+                    dc.SetBrush(wx.Brush(wx.GREEN, wx.TRANSPARENT))
 
-            if f.get_type() == "bbox":
-                if f.value == None:
-                    f.value = f.default
+                if f.get_type() == "bbox":
+                    if f.value == None:
+                        f.value = f.default
 
-                bbox = f.value
-                dc.DrawRectangle(bbox[0][0], bbox[0][1],
-                                 bbox[1][0] - bbox[0][0],
-                                 bbox[1][1] - bbox[0][1])
-            elif f.get_type() == "vector":
-                if f.value == None:
-                    f.value = f.default
+                    bbox = f.value
+                    dc.DrawRectangle(bbox[0][0], bbox[0][1],
+                                     bbox[1][0] - bbox[0][0],
+                                     bbox[1][1] - bbox[0][1])
+                elif f.get_type() == "vector":
+                    if f.value == None:
+                        f.value = f.default
 
-                v = f.value
-                dc.DrawLine(v[0][0], v[0][1], v[1][0], v[1][1])
-            elif f.get_type() == "point":
-                if f.value == None:
-                    f.value = f.default
+                    v = f.value
+                    dc.DrawLine(v[0][0], v[0][1], v[1][0], v[1][1])
+                elif f.get_type() == "point":
+                    if f.value == None:
+                        f.value = f.default
 
-                p = f.value
-                dc.DrawCircle(p[0], p[1], 5)
+                    p = f.value
+                    dc.DrawCircle(p[0], p[1], 5)
 
-        dc.SelectObject(wx.NullBitmap)
+            dc.SelectObject(wx.NullBitmap)
         self.imageControl.SetBitmap(self.image)

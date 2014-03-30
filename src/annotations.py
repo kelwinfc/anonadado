@@ -1,6 +1,6 @@
 import json
 from sys import stderr
-
+import copy
 
 class feature:
 
@@ -27,13 +27,13 @@ class feature:
     def to_json(self, verbose=True):
         ret = {"name": self.name}
         if verbose:
-            ret["default"] = self.default
+            ret["default"] = self.copy(self.default)
 
             if self.ftype is not None:
                 ret["type"] = self.ftype
 
         if self.value is not None:
-            ret["value"] = self.value
+            ret["value"] = self.copy(self.value)
 
         return ret
 
@@ -41,16 +41,18 @@ class feature:
         return feature(self.to_json())
 
     def set_values(self, json):
-        self.value = json.get("value", self.default)
-
+        self.value = json.get("value", self.copy(self.default))
+    
     def merge(self, a, l, i, r):
         if i > (l + r) / 2:
             self.value = a.value
 
     def get_type(self):
         return "feature"
-
-
+    
+    def copy(self, value):
+        return value
+    
 class bool_feature(feature):
     def __init__(self, json):
         feature.__init__(self, json, True)
@@ -157,7 +159,9 @@ class bbox_feature(feature):
 
     def get_type(self):
         return "bbox"
-
+    
+    def copy(self, value):
+        return [[y for y in x] for x in value]
 
 class vector_feature(bbox_feature):
     def __init__(self, json):
@@ -194,6 +198,9 @@ class point_feature(feature):
 
     def get_type(self):
         return "point"
+    
+    def copy(self, value):
+        return [x for x in value]
 
 class_by_name = {"bool": bool_feature,
                  "string": str_feature,
@@ -397,7 +404,7 @@ class annotation_manager:
         self.sequence[index].append(new_instance)
         self.sequence[index].sort(key=(lambda x: x.frame))
         self.sort_annotations()
-
+        
         return ret
 
     def rm_point_from_annotation(self, index, frame):
