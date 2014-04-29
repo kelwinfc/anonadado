@@ -18,7 +18,14 @@ using namespace std;
 namespace anonadado {
 
     class feature {
-        
+        private:
+            std::string name;
+            std::string type;
+        public:
+            feature();
+            
+            virtual void read(const rapidjson::Value& v);
+            void read(std::string filename);
     };
     
     class annotation {
