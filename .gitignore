@@ -1,3 +1,5 @@
 *~
 *.pyc
+*.o
+src/api/cpp/test_anonadado
 
