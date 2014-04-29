@@ -2,6 +2,9 @@
 
 int main(int argc, char* argv[])
 {
-    cout << "hola\n";
+    anonadado::instance i;
+    i.read(argv[1]);
+    cout << "Bye!\n";
+    
     return 0;
 }

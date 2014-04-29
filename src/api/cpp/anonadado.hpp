@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
@@ -10,10 +11,14 @@
 #include "rapidjson/filestream.h"
 #include "rapidjson/stringbuffer.h"
 
+using namespace std;
+
 namespace anonadado {
 
     class domain {
-        
+
+        public:
+            domain(){}
     };
 
     class annotation {
@@ -24,10 +29,9 @@ namespace anonadado {
         private:
             domain* d;
             std::vector<annotation*> annotations;
-
-            std::string domain_name;
+            
             std::string domain_filename;
-
+            
             std::string instance_name;
             std::string instance_filename;
 
@@ -36,8 +40,8 @@ namespace anonadado {
             
         public:
             instance();
-            instance(domain* d);
-
+            ~instance();
+            
             void read(std::string filename);
     };
 };
