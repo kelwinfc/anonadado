@@ -38,3 +38,16 @@ bool rapidjson_get_bool(const rapidjson::Value& v, string field,
         return v[f].GetBool();
     }
 }
+
+float rapidjson_get_float(const rapidjson::Value& v, string field,
+                          float default_value)
+{
+    const char* f = field.c_str();
+    
+    if ( !v.HasMember(f) || !v[f].IsDouble() )
+    {
+        return default_value;
+    } else {
+        return (float)v[f].GetDouble();
+    }
+}

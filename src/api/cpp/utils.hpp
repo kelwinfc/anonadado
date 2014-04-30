@@ -22,4 +22,7 @@ int rapidjson_get_int(const rapidjson::Value& v, string field,
 bool rapidjson_get_bool(const rapidjson::Value& v, string field,
                         bool default_value=false);
 
+float rapidjson_get_float(const rapidjson::Value& v, string field,
+                          float default_value=0.0);
+
 #endif
