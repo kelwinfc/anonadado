@@ -97,26 +97,26 @@ namespace anonadado {
 
             string get_value();
     };
-
+    
     /* Bounding Box Feature */
     class bbox_feature : public feature {
         protected:
             BBOX default_value;
             BBOX value;
-    
+        
         public:
             bbox_feature();
             virtual void read(const rapidjson::Value& v);
             
             BBOX get_value();
     };
-
+    
     /* Vector Feature */
     class vector_feature : public bbox_feature {
         public:
             vector_feature();
     };
-
+    
     /* Point Feature */
     class point_feature : public feature {
         protected:
@@ -129,7 +129,7 @@ namespace anonadado {
 
             POINT get_value();
     };
-        
+    
     /*************************************************************************/
     
     class annotation {
