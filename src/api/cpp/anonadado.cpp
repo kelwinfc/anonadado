@@ -37,7 +37,7 @@ void bool_feature::read(const rapidjson::Value& v)
 {
     feature::read(v);
     this->default_value = rapidjson_get_bool(v, "default", true);
-    this->value = rapidjson_get_bool(v, "value", true);
+    this->value = rapidjson_get_bool(v, "value", this->default_value);
 }
 
 bool bool_feature::get_value()
@@ -59,7 +59,7 @@ void str_feature::read(const rapidjson::Value& v)
 {
     feature::read(v);
     this->default_value = rapidjson_get_string(v, "default", "");
-    this->value = rapidjson_get_string(v, "value", "");
+    this->value = rapidjson_get_string(v, "value", this->default_value);
 }
 
 string str_feature::get_value()
@@ -81,7 +81,7 @@ void float_feature::read(const rapidjson::Value& v)
 {
     feature::read(v);
     this->default_value = rapidjson_get_float(v, "default", 0.0);
-    this->value = rapidjson_get_float(v, "value", 0.0);
+    this->value = rapidjson_get_float(v, "value", this->default_value);
 }
 
 float float_feature::get_value()
@@ -103,7 +103,7 @@ void int_feature::read(const rapidjson::Value& v)
 {
     feature::read(v);
     this->default_value = rapidjson_get_int(v, "default", 0);
-    this->value = rapidjson_get_int(v, "value", 0);
+    this->value = rapidjson_get_int(v, "value", this->default_value);
 }
 
 int int_feature::get_value()
@@ -126,6 +126,7 @@ void choice_feature::read(const rapidjson::Value& v)
     feature::read(v);
     string dv = rapidjson_get_string(v, "default", "");
     string av = rapidjson_get_string(v, "value", "");
+    bool has_value = false;
     
     this->values.clear();
     if ( v.HasMember("values") && v["values"].IsArray() ){
@@ -150,7 +151,10 @@ void choice_feature::read(const rapidjson::Value& v)
             }
         }
     }
-    
+
+    if ( !has_value ){
+        this->value = this->default_value;
+    }
 }
 
 string choice_feature::get_value()
@@ -158,6 +162,64 @@ string choice_feature::get_value()
     return this->values[this->value];
 }
 
+/******************************* Bbox Feature ********************************/
+
+bbox_feature::bbox_feature()
+{
+    this->default_value = DEFAULT_BBOX;
+    this->value = DEFAULT_BBOX;
+    this->type = "bbox";
+}
+
+
+void bbox_feature::read(const rapidjson::Value& v)
+{
+    feature::read(v);
+
+    BBOX dv = DEFAULT_BBOX;
+    
+    this->default_value = rapidjson_get_bbox(v, "default", dv);
+    this->value = rapidjson_get_bbox(v, "value", this->default_value);
+}
+
+BBOX bbox_feature::get_value()
+{
+    return this->value;
+}
+
+/****************************** Vector Feature *******************************/
+
+vector_feature::vector_feature()
+{
+    this->default_value = DEFAULT_BBOX;
+    this->value = DEFAULT_BBOX;
+    this->type = "vector";
+}
+
+/******************************* Point Feature *******************************/
+
+point_feature::point_feature()
+{
+    this->default_value = DEFAULT_POINT;
+    this->value = DEFAULT_POINT;
+    this->type = "point";
+}
+
+
+void point_feature::read(const rapidjson::Value& v)
+{
+    feature::read(v);
+
+    POINT dv = DEFAULT_POINT;
+
+    this->default_value = rapidjson_get_point(v, "default", dv);
+    this->value = rapidjson_get_point(v, "value", this->default_value);
+}
+
+POINT point_feature::get_value()
+{
+    return this->value;
+}
 /*****************************************************************************/
 
 feature* get_feature(const rapidjson::Value& v)
@@ -176,6 +238,10 @@ feature* get_feature(const rapidjson::Value& v)
         ret = new int_feature();
     } else if ( type == "choice" ){
         ret = new choice_feature();
+    } else if ( type == "bbox" ){
+        ret = new bbox_feature();
+    } else if ( type == "vector" ){
+        ret = new vector_feature();
     } else {
         ret = new feature();
     }
