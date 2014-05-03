@@ -37,6 +37,11 @@ string feature::get_type()
     return this->type;
 }
 
+string feature::get_name()
+{
+    return this->name;
+}
+
 /******************************* Bool Feature ********************************/
 
 bool_feature::bool_feature()
@@ -308,7 +313,7 @@ POINT point_feature::get_value()
 }
 /*****************************************************************************/
 
-feature* get_feature(const rapidjson::Value& v)
+feature* get_feature_instance(const rapidjson::Value& v)
 {
     feature* ret;
     
@@ -333,6 +338,146 @@ feature* get_feature(const rapidjson::Value& v)
     }
     
     ret->read(v);
+    
+    return ret;
+}
+
+/*****************************************************************************
+ *                                Annotation                                 *
+ *****************************************************************************/
+
+annotation::annotation()
+{
+    this->frame = -1;
+    this->is_unique = false;
+    this->is_global = false;
+    this->name = "";
+}
+
+feature* get_feature_instance(feature* f)
+{
+    feature* ret = 0;
+    
+    string type = f->get_type();
+    
+    if ( type == "bool" ){
+        bool_feature* cf = (bool_feature*)f;
+        ret = new bool_feature(*cf);
+    } else if ( type == "string" ){
+        str_feature* cf = (str_feature*)f;
+        ret = new str_feature(*cf);
+    } else if ( type == "float" ){
+        float_feature* cf = (float_feature*)f;
+        ret = new float_feature(*cf);
+    } else if ( type == "int" ){
+        int_feature* cf = (int_feature*)f;
+        ret = new int_feature(*cf);
+    } else if ( type == "choice" ){
+        choice_feature* cf = (choice_feature*)f;
+        ret = new choice_feature(*cf);
+    } else if ( type == "bbox" ){
+        bbox_feature* cf = (bbox_feature*)f;
+        ret = new bbox_feature(*cf);
+    } else if ( type == "vector" ){
+        vector_feature* cf = (vector_feature*)f;
+        ret = new vector_feature(*cf);
+    } else {
+        ret = new feature(*f);
+    }
+    
+    return ret;
+}
+
+annotation::annotation(annotation& a)
+{
+    this->frame = a.frame;
+    this->name  = a.name;
+    this->is_unique = a.is_unique;
+    this->is_global = a.is_global;
+    
+    map<string, feature*>::iterator it;
+    for ( it = a.features.begin(); it != a.features.end(); ++it ){
+        this->features[it->first] = get_feature_instance(it->second);
+    }
+}
+
+annotation::~annotation()
+{
+    this->clear_features();
+}
+
+void annotation::read(const rapidjson::Value& v, bool just_value)
+{
+    if ( !just_value ){
+        this->is_unique = rapidjson_get_bool(v, "is_unique", false);
+        this->is_global = rapidjson_get_bool(v, "is_global", false);
+        this->name = rapidjson_get_string(v, "name", "");
+        
+        this->clear_features();
+    }
+    
+    this->frame = rapidjson_get_int(v, "frame", -1);
+    
+    if ( v.HasMember("features") && v["features"].IsArray() )
+    {
+        const rapidjson::Value& f = v["features"];
+        int index = 0;
+        
+        for (rapidjson::SizeType i = 0; i < f.Size(); i++){
+            const rapidjson::Value& f_json = f[i];
+            feature* f = 0;
+            
+            if ( just_value )
+            {
+                f = this->features[rapidjson_get_string(f_json, "name", "")];
+                f->read(f_json, true);
+            } else {
+                f = get_feature_instance(f_json);
+                this->features[f->get_name()] = f;
+            }
+            
+            index++;
+        }
+    }
+}
+
+void annotation::read(std::string filename)
+{
+    FILE * pFile = fopen (filename.c_str() , "r");
+    rapidjson::FileStream is(pFile);
+    rapidjson::Document document;
+    document.ParseStream<0>(is);
+
+    this->read(document);
+    
+    fclose(pFile);
+}
+
+string annotation::get_name()
+{
+    return this->name;
+}
+
+void annotation::clear_features()
+{
+    map<string, feature*>::iterator it;
+    for ( it = this->features.begin(); it != this->features.end(); ++it){
+        delete it->second;
+    }
+}
+
+int annotation::get_frame()
+{
+    return this->frame;
+}
+
+feature* annotation::get_feature(string name)
+{
+    feature* ret = 0;
+    
+    if ( this->features.find(name) != this->features.end() ){
+        ret = this->features[name];
+    }
     
     return ret;
 }
@@ -399,135 +544,6 @@ void domain::clear_labels()
     for ( it = this->labels.begin(); it != this->labels.end(); ++it ){
         delete it->second;
     }
-}
-
-/*****************************************************************************
- *                                Annotation                                 *
- *****************************************************************************/
-
-annotation::annotation()
-{
-    this->frame = -1;
-    this->is_unique = false;
-    this->is_global = false;
-    this->name = "";
-}
-
-feature* get_feature(feature* f)
-{
-    feature* ret = 0;
-    
-    string type = f->get_type();
-    
-    if ( type == "bool" ){
-        bool_feature* cf = (bool_feature*)f;
-        ret = new bool_feature(*cf);
-    } else if ( type == "string" ){
-        str_feature* cf = (str_feature*)f;
-        ret = new str_feature(*cf);
-    } else if ( type == "float" ){
-        float_feature* cf = (float_feature*)f;
-        ret = new float_feature(*cf);
-    } else if ( type == "int" ){
-        int_feature* cf = (int_feature*)f;
-        ret = new int_feature(*cf);
-    } else if ( type == "choice" ){
-        choice_feature* cf = (choice_feature*)f;
-        ret = new choice_feature(*cf);
-    } else if ( type == "bbox" ){
-        bbox_feature* cf = (bbox_feature*)f;
-        ret = new bbox_feature(*cf);
-    } else if ( type == "vector" ){
-        vector_feature* cf = (vector_feature*)f;
-        ret = new vector_feature(*cf);
-    } else {
-        ret = new feature(*f);
-    }
-    
-    return ret;
-}
-
-annotation::annotation(annotation& a)
-{
-    this->frame = a.frame;
-    this->name  = a.name;
-    this->is_unique = a.is_unique;
-    this->is_global = a.is_global;
-    
-    vector<feature*>::iterator it;
-    for ( it = a.features.begin(); it != a.features.end(); ++it ){
-        this->features.push_back(get_feature(*it));
-    }
-}
-
-annotation::~annotation()
-{
-    this->clear_features();
-}
-
-void annotation::read(const rapidjson::Value& v, bool just_value)
-{
-    if ( !just_value ){
-        this->is_unique = rapidjson_get_bool(v, "is_unique", false);
-        this->is_global = rapidjson_get_bool(v, "is_global", false);
-        this->name = rapidjson_get_string(v, "name", "");
-        
-        this->clear_features();
-    }
-    
-    this->frame = rapidjson_get_int(v, "frame", -1);
-    
-    if ( v.HasMember("features") && v["features"].IsArray() )
-    {
-        const rapidjson::Value& f = v["features"];
-        int index = 0;
-        
-        for (rapidjson::SizeType i = 0; i < f.Size(); i++){
-            const rapidjson::Value& f_json = f[i];
-            feature* f = 0;
-            
-            if ( just_value )
-            {
-                f = this->features[index];
-                f->read(f_json, true);
-            } else {
-                f = get_feature(f_json);
-                this->features.push_back(f);
-            }
-            
-            index++;
-        }
-    }
-}
-
-void annotation::read(std::string filename)
-{
-    FILE * pFile = fopen (filename.c_str() , "r");
-    rapidjson::FileStream is(pFile);
-    rapidjson::Document document;
-    document.ParseStream<0>(is);
-
-    this->read(document);
-    
-    fclose(pFile);
-}
-
-string annotation::get_name()
-{
-    return this->name;
-}
-
-void annotation::clear_features()
-{
-    vector<feature*>::iterator it;
-    for ( it = this->features.begin(); it != this->features.end(); ++it){
-        delete *it;
-    }
-}
-
-int annotation::get_frame()
-{
-    return this->frame;
 }
 
 /*****************************************************************************

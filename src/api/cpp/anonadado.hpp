@@ -30,6 +30,7 @@ namespace anonadado {
             void read(std::string filename, bool just_value);
             
             string get_type();
+            string get_name();
     };
 
     /* Bool Feature */
@@ -94,7 +95,7 @@ namespace anonadado {
             int get_value();
             
     };
-
+    
     /* Choice Feature */
     class choice_feature : public feature {
         protected:
@@ -160,8 +161,8 @@ namespace anonadado {
             bool is_unique;
             bool is_global;
 
-            std::vector<feature*> features;
-
+            std::map<string, feature*> features;
+        
         public:
             annotation();
             annotation(annotation& a);
@@ -173,6 +174,8 @@ namespace anonadado {
 
             string get_name();
             int get_frame();
+            feature* get_feature(string name);
+        
         private:
             void clear_features();
     };
