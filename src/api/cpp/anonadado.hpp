@@ -172,6 +172,7 @@ namespace anonadado {
             void read(std::string filename);
 
             string get_name();
+            int get_frame();
         private:
             void clear_features();
     };
@@ -186,8 +187,10 @@ namespace anonadado {
             domain();
 
             void read(std::string filename);
+            
+            annotation* get_descriptor(string label_name);
             annotation* get_instance(string label_name);
-
+        
         private:
             void clear_labels();
     };
@@ -204,13 +207,16 @@ namespace anonadado {
 
             std::string video_filename;
             std::string sequence_filename;
-            
+        
         public:
             instance();
             ~instance();
             
             void read(std::string filename);
-
+            void get_active_annotations(int frame_number,
+                                        vector<int>& annotation_index);
+            annotation* get_active_annotation(int index, int frame);
+        
         private:
             void clear_annotations();
     };

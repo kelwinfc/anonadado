@@ -371,6 +371,17 @@ void domain::read(string filename)
     fclose(pFile);
 }
 
+annotation* domain::get_descriptor(string label_name)
+{
+    annotation* ret = 0;
+
+    if ( this->labels.find(label_name) != this->labels.end() ){
+        ret = this->labels[label_name];
+    }
+    
+    return ret;
+}
+
 annotation* domain::get_instance(string label_name)
 {
     annotation* ret = 0;
@@ -514,6 +525,11 @@ void annotation::clear_features()
     }
 }
 
+int annotation::get_frame()
+{
+    return this->frame;
+}
+
 /*****************************************************************************
  *                                 Instance                                  *
  *****************************************************************************/
@@ -602,4 +618,50 @@ void instance::clear_annotations()
             delete *inner_it;
         }
     }
+}
+
+void instance::get_active_annotations(int frame_number,
+                                      vector<int>& annotation_index)
+{
+    annotation_index.clear();
+    int index = 0;
+    
+    vector< vector<annotation*> >::iterator it;
+    for ( it = this->annotations.begin(); it != this->annotations.end(); ++it ){
+        
+        vector<annotation*> next = *it;
+        
+        if ( next.size() > 0 && 
+             frame_number <= next[0]->get_frame() && 
+             next.back()->get_frame() <= frame_number
+           )
+        {
+            annotation_index.push_back(index);
+        }
+        
+        index++;
+    }
+}
+
+annotation* instance::get_active_annotation(int index, int frame)
+{
+    annotation* ret = 0;
+    int max_frame = -1;
+    
+    if (0 <= index && index < (int)this->annotations.size()){
+        
+        vector<annotation*>::iterator it = this->annotations[index].begin();
+        vector<annotation*>::iterator end = this->annotations[index].end();
+        
+        for ( ; it != end; ++it ){
+            annotation* n = *it;
+            int n_frame = n->get_frame();
+            if ( n_frame <= frame && n_frame >= max_frame ){
+                max_frame = n_frame;
+                ret = n;
+            }
+        }
+    }
+    
+    return ret;
 }
