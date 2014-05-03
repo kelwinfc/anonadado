@@ -13,10 +13,18 @@ feature::feature()
     this->type = "";
 }
 
-void feature::read(const rapidjson::Value& v)
+feature::feature(feature& a)
 {
-    this->name = rapidjson_get_string(v, "name", "");
-    this->type = rapidjson_get_string(v, "type", "");
+    this->name = a.name;
+    this->type = a.type;
+}
+
+void feature::read(const rapidjson::Value& v, bool just_value)
+{
+    if ( !just_value ){
+        this->name = rapidjson_get_string(v, "name", "");
+        this->type = rapidjson_get_string(v, "type", "");
+    }
 }
 
 void feature::read(std::string filename)
@@ -33,10 +41,20 @@ bool_feature::bool_feature()
     this->type = "bool";
 }
 
-void bool_feature::read(const rapidjson::Value& v)
+bool_feature::bool_feature(bool_feature& f)
 {
-    feature::read(v);
-    this->default_value = rapidjson_get_bool(v, "default", true);
+    this->default_value = f.default_value;
+    this->value = f.value;
+    this->type = "bool";
+}
+
+void bool_feature::read(const rapidjson::Value& v, bool just_value)
+{
+    if ( !just_value ){
+        feature::read(v);
+        this->default_value = rapidjson_get_bool(v, "default", true);
+    }
+    
     this->value = rapidjson_get_bool(v, "value", this->default_value);
 }
 
@@ -54,11 +72,20 @@ str_feature::str_feature()
     this->type = "string";
 }
 
-
-void str_feature::read(const rapidjson::Value& v)
+str_feature::str_feature(str_feature& f)
 {
-    feature::read(v);
-    this->default_value = rapidjson_get_string(v, "default", "");
+    this->default_value = f.default_value;
+    this->value = f.value;
+    this->type = "string";
+}
+
+void str_feature::read(const rapidjson::Value& v, bool just_value)
+{
+    if ( !just_value ){
+        feature::read(v);
+        this->default_value = rapidjson_get_string(v, "default", "");
+    }
+    
     this->value = rapidjson_get_string(v, "value", this->default_value);
 }
 
@@ -76,11 +103,20 @@ float_feature::float_feature()
     this->type = "float";
 }
 
-
-void float_feature::read(const rapidjson::Value& v)
+float_feature::float_feature(float_feature& f)
 {
-    feature::read(v);
-    this->default_value = rapidjson_get_float(v, "default", 0.0);
+    this->default_value = f.default_value;
+    this->value = f.value;
+    this->type = "float";
+}
+
+void float_feature::read(const rapidjson::Value& v, bool just_value)
+{
+    if ( !just_value){
+        feature::read(v);
+        this->default_value = rapidjson_get_float(v, "default", 0.0);
+    }
+    
     this->value = rapidjson_get_float(v, "value", this->default_value);
 }
 
@@ -98,11 +134,20 @@ int_feature::int_feature()
     this->type = "int";
 }
 
-
-void int_feature::read(const rapidjson::Value& v)
+int_feature::int_feature(int_feature& f)
 {
-    feature::read(v);
-    this->default_value = rapidjson_get_int(v, "default", 0);
+    this->default_value = f.default_value;
+    this->value = f.value;
+    this->type = "int";
+}
+
+void int_feature::read(const rapidjson::Value& v, bool just_value)
+{
+    if ( !just_value ){
+        feature::read(v);
+        this->default_value = rapidjson_get_int(v, "default", 0);
+    }
+    
     this->value = rapidjson_get_int(v, "value", this->default_value);
 }
 
@@ -120,40 +165,57 @@ choice_feature::choice_feature()
     this->type = "choice";
 }
 
-
-void choice_feature::read(const rapidjson::Value& v)
+choice_feature::choice_feature(choice_feature& f)
 {
-    feature::read(v);
-    string dv = rapidjson_get_string(v, "default", "");
-    string av = rapidjson_get_string(v, "value", "");
-    bool has_value = false;
+    this->default_value = f.default_value;
+    this->value = f.value;
+    this->type = "choice";
     
-    this->values.clear();
-    if ( v.HasMember("values") && v["values"].IsArray() ){
-        const rapidjson::Value& values = v["values"];
-        int index = 0;
-        for (rapidjson::SizeType i = 0; i < values.Size(); i++){
+    this->values = f.values;
+}
 
-            const rapidjson::Value& v_json = values[i];
-            
-            if ( v_json.IsString() ){
-                string vs = v_json.GetString();
-                this->values.push_back(vs);
+void choice_feature::read(const rapidjson::Value& v, bool just_value)
+{
+    if ( !just_value ){
+        feature::read(v);
+        string dv = rapidjson_get_string(v, "default", "");
+        string av = rapidjson_get_string(v, "value", "");
+        bool has_value = false;
+        
+        this->values.clear();
+        if ( v.HasMember("values") && v["values"].IsArray() ){
+            const rapidjson::Value& values = v["values"];
+            int index = 0;
+            for (rapidjson::SizeType i = 0; i < values.Size(); i++){
 
-                if ( vs == dv ){
-                    this->default_value = index;
+                const rapidjson::Value& v_json = values[i];
+                
+                if ( v_json.IsString() ){
+                    string vs = v_json.GetString();
+                    this->values.push_back(vs);
+
+                    if ( vs == dv ){
+                        this->default_value = index;
+                    }
+                    if ( vs == av ){
+                        this->value = index;
+                    }
+
+                    index++;
                 }
-                if ( vs == av ){
-                    this->value = index;
-                }
-
-                index++;
             }
         }
-    }
 
-    if ( !has_value ){
-        this->value = this->default_value;
+        if ( !has_value ){
+            this->value = this->default_value;
+        }
+    } else {
+        string av = rapidjson_get_string(v, "value", "");
+        for ( uint i=0; i<this->values.size(); i++ ){
+            if ( this->values[i] == av ){
+                this->value = i;
+            }
+        }
     }
 }
 
@@ -171,14 +233,20 @@ bbox_feature::bbox_feature()
     this->type = "bbox";
 }
 
-
-void bbox_feature::read(const rapidjson::Value& v)
+bbox_feature::bbox_feature(bbox_feature& f)
 {
-    feature::read(v);
+    this->default_value = f.default_value;
+    this->value = f.value;
+    this->type = "bbox";
+}
 
-    BBOX dv = DEFAULT_BBOX;
+void bbox_feature::read(const rapidjson::Value& v, bool just_value)
+{
+    if ( !just_value ){
+        feature::read(v);
+        this->default_value = rapidjson_get_bbox(v, "default", DEFAULT_BBOX);
+    }
     
-    this->default_value = rapidjson_get_bbox(v, "default", dv);
     this->value = rapidjson_get_bbox(v, "value", this->default_value);
 }
 
@@ -196,6 +264,13 @@ vector_feature::vector_feature()
     this->type = "vector";
 }
 
+vector_feature::vector_feature(vector_feature& f)
+{
+    this->default_value = f.default_value;
+    this->value = f.value;
+    this->type = "vector";
+}
+
 /******************************* Point Feature *******************************/
 
 point_feature::point_feature()
@@ -205,14 +280,20 @@ point_feature::point_feature()
     this->type = "point";
 }
 
-
-void point_feature::read(const rapidjson::Value& v)
+point_feature::point_feature(point_feature& f)
 {
-    feature::read(v);
+    this->default_value = f.default_value;
+    this->value = f.value;
+    this->type = "point";
+}
 
-    POINT dv = DEFAULT_POINT;
-
-    this->default_value = rapidjson_get_point(v, "default", dv);
+void point_feature::read(const rapidjson::Value& v, bool just_value)
+{
+    if ( !just_value ){
+        feature::read(v);
+        this->default_value = rapidjson_get_point(v, "default", DEFAULT_POINT);
+    }
+    
     this->value = rapidjson_get_point(v, "value", this->default_value);
 }
 
@@ -312,6 +393,11 @@ annotation::annotation()
     this->is_unique = false;
     this->is_global = false;
     this->name = "";
+}
+
+annotation::annotation(annotation& a)
+{
+    //TODO
 }
 
 annotation::~annotation()
@@ -419,11 +505,11 @@ void instance::read(string filename)
 
             if ( n_annotation.IsArray() ){
                 for (rapidjson::SizeType j = 0; j < n_annotation.Size(); j++){
-                    const rapidjson::Value& nn_annotation = n_annotation[j];
-                    annotation* n = new annotation();
+                    //TODO: read annotation instance
+                    //const rapidjson::Value& nn_annotation = n_annotation[j];
+                    //annotation* n = new annotation();
                     //n->read(nn_annotation);
-                    
-                    next.push_back(n);
+                    //next.push_back(n);
                 }
             }
 

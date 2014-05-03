@@ -24,9 +24,11 @@ namespace anonadado {
             std::string type;
         public:
             feature();
+            feature(feature& a);
             
-            virtual void read(const rapidjson::Value& v);
+            virtual void read(const rapidjson::Value& v, bool just_value=false);
             void read(std::string filename);
+            
     };
 
     /* Bool Feature */
@@ -37,9 +39,12 @@ namespace anonadado {
 
         public:
             bool_feature();
-            virtual void read(const rapidjson::Value& v);
+            bool_feature(bool_feature& f);
+            
+            virtual void read(const rapidjson::Value& v, bool just_value=false);
 
             bool get_value();
+            
     };
 
     /* String Feature */
@@ -47,13 +52,15 @@ namespace anonadado {
         protected:
             string default_value;
             string value;
-
-
+        
         public:
             str_feature();
-            virtual void read(const rapidjson::Value& v);
+            str_feature(str_feature& f);
+            
+            virtual void read(const rapidjson::Value& v, bool just_value=false);
 
             string get_value();
+            
     };
 
     /* Float Feature */
@@ -62,12 +69,14 @@ namespace anonadado {
             float default_value;
             float value;
 
-
         public:
             float_feature();
-            virtual void read(const rapidjson::Value& v);
+            float_feature(float_feature& f);
+            
+            virtual void read(const rapidjson::Value& v, bool just_value=false);
 
             float get_value();
+            
     };
 
     /* Int Feature */
@@ -76,12 +85,14 @@ namespace anonadado {
             int default_value;
             int value;
 
-
         public:
             int_feature();
-            virtual void read(const rapidjson::Value& v);
+            int_feature(int_feature& f);
+            
+            virtual void read(const rapidjson::Value& v, bool just_value=false);
 
             int get_value();
+            
     };
 
     /* Choice Feature */
@@ -93,9 +104,12 @@ namespace anonadado {
         
         public:
             choice_feature();
-            virtual void read(const rapidjson::Value& v);
+            choice_feature(choice_feature& f);
+            
+            virtual void read(const rapidjson::Value& v, bool just_value=false);
 
             string get_value();
+            
     };
     
     /* Bounding Box Feature */
@@ -106,15 +120,19 @@ namespace anonadado {
         
         public:
             bbox_feature();
-            virtual void read(const rapidjson::Value& v);
+            bbox_feature(bbox_feature& f);
+            
+            virtual void read(const rapidjson::Value& v, bool just_value=false);
             
             BBOX get_value();
+            
     };
     
     /* Vector Feature */
     class vector_feature : public bbox_feature {
         public:
             vector_feature();
+            vector_feature(vector_feature& f);
     };
     
     /* Point Feature */
@@ -125,9 +143,12 @@ namespace anonadado {
 
         public:
             point_feature();
-            virtual void read(const rapidjson::Value& v);
+            point_feature(point_feature& f);
+            
+            virtual void read(const rapidjson::Value& v, bool just_value=false);
 
             POINT get_value();
+            
     };
     
     /*************************************************************************/
@@ -143,6 +164,8 @@ namespace anonadado {
 
         public:
             annotation();
+            annotation(annotation& a);
+            
             ~annotation();
             
             void read(const rapidjson::Value& v);
