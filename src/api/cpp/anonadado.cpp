@@ -27,9 +27,14 @@ void feature::read(const rapidjson::Value& v, bool just_value)
     }
 }
 
-void feature::read(std::string filename)
+void feature::read(std::string filename, bool just_value)
 {
     
+}
+
+string feature::get_type()
+{
+    return this->type;
 }
 
 /******************************* Bool Feature ********************************/
@@ -327,6 +332,8 @@ feature* get_feature(const rapidjson::Value& v)
         ret = new feature();
     }
     
+    ret->read(v);
+    
     return ret;
 }
 
@@ -369,7 +376,7 @@ annotation* domain::get_instance(string label_name)
     annotation* ret = 0;
 
     if ( this->labels.find(label_name) != this->labels.end() ){
-        
+        ret = new annotation(*this->labels[label_name]);
     }
     return ret;
 }
@@ -395,9 +402,51 @@ annotation::annotation()
     this->name = "";
 }
 
+feature* get_feature(feature* f)
+{
+    feature* ret = 0;
+    
+    string type = f->get_type();
+    
+    if ( type == "bool" ){
+        bool_feature* cf = (bool_feature*)f;
+        ret = new bool_feature(*cf);
+    } else if ( type == "string" ){
+        str_feature* cf = (str_feature*)f;
+        ret = new str_feature(*cf);
+    } else if ( type == "float" ){
+        float_feature* cf = (float_feature*)f;
+        ret = new float_feature(*cf);
+    } else if ( type == "int" ){
+        int_feature* cf = (int_feature*)f;
+        ret = new int_feature(*cf);
+    } else if ( type == "choice" ){
+        choice_feature* cf = (choice_feature*)f;
+        ret = new choice_feature(*cf);
+    } else if ( type == "bbox" ){
+        bbox_feature* cf = (bbox_feature*)f;
+        ret = new bbox_feature(*cf);
+    } else if ( type == "vector" ){
+        vector_feature* cf = (vector_feature*)f;
+        ret = new vector_feature(*cf);
+    } else {
+        ret = new feature(*f);
+    }
+    
+    return ret;
+}
+
 annotation::annotation(annotation& a)
 {
-    //TODO
+    this->frame = a.frame;
+    this->name  = a.name;
+    this->is_unique = a.is_unique;
+    this->is_global = a.is_global;
+    
+    vector<feature*>::iterator it;
+    for ( it = a.features.begin(); it != a.features.end(); ++it ){
+        this->features.push_back(get_feature(*it));
+    }
 }
 
 annotation::~annotation()
@@ -405,22 +454,37 @@ annotation::~annotation()
     this->clear_features();
 }
 
-void annotation::read(const rapidjson::Value& v)
+void annotation::read(const rapidjson::Value& v, bool just_value)
 {
-    this->frame = rapidjson_get_int(v, "frame", -1);
-    this->is_unique = rapidjson_get_bool(v, "is_unique", false);
-    this->is_global = rapidjson_get_bool(v, "is_global", false);
-    this->name = rapidjson_get_string(v, "name", "");
+    if ( !just_value ){
+        this->is_unique = rapidjson_get_bool(v, "is_unique", false);
+        this->is_global = rapidjson_get_bool(v, "is_global", false);
+        this->name = rapidjson_get_string(v, "name", "");
+        
+        this->clear_features();
+    }
     
-    this->clear_features();
+    this->frame = rapidjson_get_int(v, "frame", -1);
+    
     if ( v.HasMember("features") && v["features"].IsArray() )
     {
         const rapidjson::Value& f = v["features"];
+        int index = 0;
         
         for (rapidjson::SizeType i = 0; i < f.Size(); i++){
             const rapidjson::Value& f_json = f[i];
-            feature* f = get_feature(f_json);
-            this->features.push_back(f);
+            feature* f = 0;
+            
+            if ( just_value )
+            {
+                f = this->features[index];
+                f->read(f_json, true);
+            } else {
+                f = get_feature(f_json);
+                this->features.push_back(f);
+            }
+            
+            index++;
         }
     }
 }
@@ -505,14 +569,23 @@ void instance::read(string filename)
 
             if ( n_annotation.IsArray() ){
                 for (rapidjson::SizeType j = 0; j < n_annotation.Size(); j++){
-                    //TODO: read annotation instance
-                    //const rapidjson::Value& nn_annotation = n_annotation[j];
-                    //annotation* n = new annotation();
-                    //n->read(nn_annotation);
-                    //next.push_back(n);
+                    const rapidjson::Value& nn_annotation = n_annotation[j];
+                    
+                    if ( nn_annotation.HasMember("name") && 
+                         nn_annotation["name"].IsString() )
+                    {
+                        string label = nn_annotation["name"].GetString();
+                        annotation* prev =  this->d->get_instance(label);
+                        
+                        if ( prev != 0 ){
+                            annotation* n = new annotation(*prev);
+                            n->read(nn_annotation, true);
+                            next.push_back(n);
+                        }
+                    }
                 }
             }
-
+            
             this->annotations.push_back(next);
         }
     }

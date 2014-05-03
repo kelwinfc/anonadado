@@ -27,8 +27,9 @@ namespace anonadado {
             feature(feature& a);
             
             virtual void read(const rapidjson::Value& v, bool just_value=false);
-            void read(std::string filename);
+            void read(std::string filename, bool just_value);
             
+            string get_type();
     };
 
     /* Bool Feature */
@@ -44,7 +45,6 @@ namespace anonadado {
             virtual void read(const rapidjson::Value& v, bool just_value=false);
 
             bool get_value();
-            
     };
 
     /* String Feature */
@@ -168,7 +168,7 @@ namespace anonadado {
             
             ~annotation();
             
-            void read(const rapidjson::Value& v);
+            void read(const rapidjson::Value& v, bool just_value = false);
             void read(std::string filename);
 
             string get_name();
