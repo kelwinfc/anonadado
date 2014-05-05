@@ -482,6 +482,19 @@ feature* annotation::get_feature(string name)
     return ret;
 }
 
+void annotation::get_features(std::vector<string>& f)
+{
+    map<string, feature*>::iterator it, end;
+    
+    f.clear();
+    it = this->features.begin();
+    end = this->features.end();
+
+    for ( ; it != end; ++it ){
+        f.push_back(it->first);
+    }
+}
+
 /*****************************************************************************
  *                                  Domain                                   *
  *****************************************************************************/
@@ -648,8 +661,8 @@ void instance::get_active_annotations(int frame_number,
         vector<annotation*> next = *it;
         
         if ( next.size() > 0 && 
-             frame_number <= next[0]->get_frame() && 
-             next.back()->get_frame() <= frame_number
+             next[0]->get_frame() <= frame_number &&
+             frame_number <= next.back()->get_frame()
            )
         {
             annotation_index.push_back(index);
@@ -680,4 +693,22 @@ annotation* instance::get_active_annotation(int index, int frame)
     }
     
     return ret;
+}
+
+void instance::get_frame(int index, cv::Mat& dst)
+{
+    string dir;
+    stringstream ss;
+
+    ss << this->sequence_filename;
+    
+    if ( this->sequence_filename[this->sequence_filename.size() - 1] != '/' ){
+        ss << "/";
+    }
+
+    ss << index << ".jpg";
+
+    getline(ss, dir);
+
+    dst = cv::imread(dir);
 }

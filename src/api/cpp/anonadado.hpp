@@ -12,6 +12,10 @@
 #include "rapidjson/filestream.h"
 #include "rapidjson/stringbuffer.h"
 
+#include "opencv2/core/core.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+
 #include "utils.hpp"
 
 using namespace std;
@@ -175,6 +179,7 @@ namespace anonadado {
             string get_name();
             int get_frame();
             feature* get_feature(string name);
+            void get_features(std::vector<string>& f);
         
         private:
             void clear_features();
@@ -219,6 +224,7 @@ namespace anonadado {
             void get_active_annotations(int frame_number,
                                         vector<int>& annotation_index);
             annotation* get_active_annotation(int index, int frame);
+            void get_frame(int index, cv::Mat& dst);
         
         private:
             void clear_annotations();
