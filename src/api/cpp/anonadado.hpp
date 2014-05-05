@@ -18,8 +18,6 @@
 
 #include "utils.hpp"
 
-using namespace std;
-
 namespace anonadado {
 
     class feature {
@@ -30,11 +28,12 @@ namespace anonadado {
             feature();
             feature(feature& a);
             
-            virtual void read(const rapidjson::Value& v, bool just_value=false);
+            virtual void read(const rapidjson::Value& v,
+                              bool just_value=false);
             void read(std::string filename, bool just_value);
             
-            string get_type();
-            string get_name();
+            std::string get_type();
+            std::string get_name();
     };
 
     /* Bool Feature */
@@ -47,7 +46,8 @@ namespace anonadado {
             bool_feature();
             bool_feature(bool_feature& f);
             
-            virtual void read(const rapidjson::Value& v, bool just_value=false);
+            virtual void read(const rapidjson::Value& v,
+                              bool just_value=false);
 
             bool get_value();
     };
@@ -55,16 +55,17 @@ namespace anonadado {
     /* String Feature */
     class str_feature : public feature {
         protected:
-            string default_value;
-            string value;
+            std::string default_value;
+            std::string value;
         
         public:
             str_feature();
             str_feature(str_feature& f);
             
-            virtual void read(const rapidjson::Value& v, bool just_value=false);
+            virtual void read(const rapidjson::Value& v,
+                              bool just_value=false);
 
-            string get_value();
+            std::string get_value();
             
     };
 
@@ -78,7 +79,8 @@ namespace anonadado {
             float_feature();
             float_feature(float_feature& f);
             
-            virtual void read(const rapidjson::Value& v, bool just_value=false);
+            virtual void read(const rapidjson::Value& v,
+                              bool just_value=false);
 
             float get_value();
             
@@ -94,7 +96,8 @@ namespace anonadado {
             int_feature();
             int_feature(int_feature& f);
             
-            virtual void read(const rapidjson::Value& v, bool just_value=false);
+            virtual void read(const rapidjson::Value& v,
+                              bool just_value=false);
 
             int get_value();
             
@@ -111,9 +114,10 @@ namespace anonadado {
             choice_feature();
             choice_feature(choice_feature& f);
             
-            virtual void read(const rapidjson::Value& v, bool just_value=false);
+            virtual void read(const rapidjson::Value& v,
+                              bool just_value=false);
 
-            string get_value();
+            std::string get_value();
             
     };
     
@@ -127,7 +131,8 @@ namespace anonadado {
             bbox_feature();
             bbox_feature(bbox_feature& f);
             
-            virtual void read(const rapidjson::Value& v, bool just_value=false);
+            virtual void read(const rapidjson::Value& v,
+                              bool just_value=false);
             
             BBOX get_value();
             
@@ -150,7 +155,8 @@ namespace anonadado {
             point_feature();
             point_feature(point_feature& f);
             
-            virtual void read(const rapidjson::Value& v, bool just_value=false);
+            virtual void read(const rapidjson::Value& v,
+                              bool just_value=false);
 
             POINT get_value();
             
@@ -165,7 +171,7 @@ namespace anonadado {
             bool is_unique;
             bool is_global;
 
-            std::map<string, feature*> features;
+            std::map<std::string, feature*> features;
         
         public:
             annotation();
@@ -176,10 +182,10 @@ namespace anonadado {
             void read(const rapidjson::Value& v, bool just_value = false);
             void read(std::string filename);
 
-            string get_name();
+            std::string get_name();
             int get_frame();
-            feature* get_feature(string name);
-            void get_features(std::vector<string>& f);
+            feature* get_feature(std::string name);
+            void get_features(std::vector<std::string>& f);
         
         private:
             void clear_features();
@@ -188,7 +194,7 @@ namespace anonadado {
     class domain {
 
         private:
-            map<string, annotation*> labels;
+            std::map<std::string, annotation*> labels;
             std::string name;
         
         public:
@@ -196,8 +202,8 @@ namespace anonadado {
 
             void read(std::string filename);
             
-            annotation* get_descriptor(string label_name);
-            annotation* get_instance(string label_name);
+            annotation* get_descriptor(std::string label_name);
+            annotation* get_instance(std::string label_name);
         
         private:
             void clear_labels();
@@ -206,7 +212,7 @@ namespace anonadado {
     class instance {
         private:
             domain* d;
-            std::vector< vector<annotation*> > annotations;
+            std::vector< std::vector<annotation*> > annotations;
             
             std::string domain_filename;
             
@@ -222,7 +228,7 @@ namespace anonadado {
             
             void read(std::string filename);
             void get_active_annotations(int frame_number,
-                                        vector<int>& annotation_index);
+                                        std::vector<int>& annotation_index);
             annotation* get_active_annotation(int index, int frame);
             void get_frame(int index, cv::Mat& dst);
         

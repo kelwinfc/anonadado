@@ -1,7 +1,6 @@
 #include "anonadado.hpp"
 
 using namespace anonadado;
-using namespace std;
 
 /*****************************************************************************
  *                                  Feature                                  *
@@ -32,12 +31,12 @@ void feature::read(std::string filename, bool just_value)
     
 }
 
-string feature::get_type()
+std::string feature::get_type()
 {
     return this->type;
 }
 
-string feature::get_name()
+std::string feature::get_name()
 {
     return this->name;
 }
@@ -99,7 +98,7 @@ void str_feature::read(const rapidjson::Value& v, bool just_value)
     this->value = rapidjson_get_string(v, "value", this->default_value);
 }
 
-string str_feature::get_value()
+std::string str_feature::get_value()
 {
     return this->value;
 }
@@ -188,8 +187,8 @@ void choice_feature::read(const rapidjson::Value& v, bool just_value)
 {
     if ( !just_value ){
         feature::read(v);
-        string dv = rapidjson_get_string(v, "default", "");
-        string av = rapidjson_get_string(v, "value", "");
+        std::string dv = rapidjson_get_string(v, "default", "");
+        std::string av = rapidjson_get_string(v, "value", "");
         bool has_value = false;
         
         this->values.clear();
@@ -201,7 +200,7 @@ void choice_feature::read(const rapidjson::Value& v, bool just_value)
                 const rapidjson::Value& v_json = values[i];
                 
                 if ( v_json.IsString() ){
-                    string vs = v_json.GetString();
+                    std::string vs = v_json.GetString();
                     this->values.push_back(vs);
 
                     if ( vs == dv ){
@@ -220,7 +219,7 @@ void choice_feature::read(const rapidjson::Value& v, bool just_value)
             this->value = this->default_value;
         }
     } else {
-        string av = rapidjson_get_string(v, "value", "");
+        std::string av = rapidjson_get_string(v, "value", "");
         for ( uint i=0; i<this->values.size(); i++ ){
             if ( this->values[i] == av ){
                 this->value = i;
@@ -229,7 +228,7 @@ void choice_feature::read(const rapidjson::Value& v, bool just_value)
     }
 }
 
-string choice_feature::get_value()
+std::string choice_feature::get_value()
 {
     return this->values[this->value];
 }
@@ -317,7 +316,7 @@ feature* get_feature_instance(const rapidjson::Value& v)
 {
     feature* ret;
     
-    string type = rapidjson_get_string(v, "type", "");
+    std::string type = rapidjson_get_string(v, "type", "");
     
     if ( type == "bool" ){
         ret = new bool_feature();
@@ -358,7 +357,7 @@ feature* get_feature_instance(feature* f)
 {
     feature* ret = 0;
     
-    string type = f->get_type();
+    std::string type = f->get_type();
     
     if ( type == "bool" ){
         bool_feature* cf = (bool_feature*)f;
@@ -395,7 +394,7 @@ annotation::annotation(annotation& a)
     this->is_unique = a.is_unique;
     this->is_global = a.is_global;
     
-    map<string, feature*>::iterator it;
+    std::map<std::string, feature*>::iterator it;
     for ( it = a.features.begin(); it != a.features.end(); ++it ){
         this->features[it->first] = get_feature_instance(it->second);
     }
@@ -453,14 +452,14 @@ void annotation::read(std::string filename)
     fclose(pFile);
 }
 
-string annotation::get_name()
+std::string annotation::get_name()
 {
     return this->name;
 }
 
 void annotation::clear_features()
 {
-    map<string, feature*>::iterator it;
+    std::map<std::string, feature*>::iterator it;
     for ( it = this->features.begin(); it != this->features.end(); ++it){
         delete it->second;
     }
@@ -471,7 +470,7 @@ int annotation::get_frame()
     return this->frame;
 }
 
-feature* annotation::get_feature(string name)
+feature* annotation::get_feature(std::string name)
 {
     feature* ret = 0;
     
@@ -482,9 +481,9 @@ feature* annotation::get_feature(string name)
     return ret;
 }
 
-void annotation::get_features(std::vector<string>& f)
+void annotation::get_features(std::vector<std::string>& f)
 {
-    map<string, feature*>::iterator it, end;
+    std::map<std::string, feature*>::iterator it, end;
     
     f.clear();
     it = this->features.begin();
@@ -504,7 +503,7 @@ domain::domain()
     this->name = "";
 }
 
-void domain::read(string filename)
+void domain::read(std::string filename)
 {
     FILE * pFile = fopen (filename.c_str() , "r");
     rapidjson::FileStream is(pFile);
@@ -529,7 +528,7 @@ void domain::read(string filename)
     fclose(pFile);
 }
 
-annotation* domain::get_descriptor(string label_name)
+annotation* domain::get_descriptor(std::string label_name)
 {
     annotation* ret = 0;
 
@@ -540,7 +539,7 @@ annotation* domain::get_descriptor(string label_name)
     return ret;
 }
 
-annotation* domain::get_instance(string label_name)
+annotation* domain::get_instance(std::string label_name)
 {
     annotation* ret = 0;
 
@@ -552,7 +551,7 @@ annotation* domain::get_instance(string label_name)
 
 void domain::clear_labels()
 {
-    map<string, annotation*>::iterator it;
+    std::map<std::string, annotation*>::iterator it;
 
     for ( it = this->labels.begin(); it != this->labels.end(); ++it ){
         delete it->second;
@@ -577,7 +576,7 @@ instance::~instance()
     this->clear_annotations();
 }
 
-void instance::read(string filename)
+void instance::read(std::string filename)
 {
     FILE * pFile = fopen (filename.c_str() , "r");
     rapidjson::FileStream is(pFile);
@@ -610,7 +609,7 @@ void instance::read(string filename)
         for (rapidjson::SizeType i = 0; i < sequence.Size(); i++){
             const rapidjson::Value& n_annotation = sequence[i];
 
-            vector<annotation*> next;
+            std::vector<annotation*> next;
 
             if ( n_annotation.IsArray() ){
                 for (rapidjson::SizeType j = 0; j < n_annotation.Size(); j++){
@@ -619,7 +618,7 @@ void instance::read(string filename)
                     if ( nn_annotation.HasMember("name") && 
                          nn_annotation["name"].IsString() )
                     {
-                        string label = nn_annotation["name"].GetString();
+                        std::string label = nn_annotation["name"].GetString();
                         annotation* prev =  this->d->get_instance(label);
                         
                         if ( prev != 0 ){
@@ -640,9 +639,9 @@ void instance::read(string filename)
 
 void instance::clear_annotations()
 {
-    vector< vector<annotation*> >::iterator it;
+    std::vector< std::vector<annotation*> >::iterator it;
     for ( it = this->annotations.begin(); it != this->annotations.end(); ++it){
-        vector<annotation*>::iterator inner_it;
+        std::vector<annotation*>::iterator inner_it;
         for ( inner_it = it->begin(); inner_it != it->end(); ++inner_it){
             delete *inner_it;
         }
@@ -650,15 +649,16 @@ void instance::clear_annotations()
 }
 
 void instance::get_active_annotations(int frame_number,
-                                      vector<int>& annotation_index)
+                                      std::vector<int>& annotation_index)
 {
     annotation_index.clear();
     int index = 0;
     
-    vector< vector<annotation*> >::iterator it;
-    for ( it = this->annotations.begin(); it != this->annotations.end(); ++it ){
+    std::vector< std::vector<annotation*> >::iterator it;
+    for ( it = this->annotations.begin(); it != this->annotations.end(); ++it )
+    {
         
-        vector<annotation*> next = *it;
+        std::vector<annotation*> next = *it;
         
         if ( next.size() > 0 && 
              next[0]->get_frame() <= frame_number &&
@@ -679,8 +679,10 @@ annotation* instance::get_active_annotation(int index, int frame)
     
     if (0 <= index && index < (int)this->annotations.size()){
         
-        vector<annotation*>::iterator it = this->annotations[index].begin();
-        vector<annotation*>::iterator end = this->annotations[index].end();
+        std::vector<annotation*>::iterator it, end;
+
+        it = this->annotations[index].begin();
+        end = this->annotations[index].end();
         
         for ( ; it != end; ++it ){
             annotation* n = *it;
@@ -697,8 +699,8 @@ annotation* instance::get_active_annotation(int index, int frame)
 
 void instance::get_frame(int index, cv::Mat& dst)
 {
-    string dir;
-    stringstream ss;
+    std::string dir;
+    std::stringstream ss;
 
     ss << this->sequence_filename;
     

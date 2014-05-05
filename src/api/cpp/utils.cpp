@@ -1,7 +1,7 @@
 #include "utils.hpp"
 
-string rapidjson_get_string(const rapidjson::Value& v, string field,
-                            string default_value)
+std::string rapidjson_get_string(const rapidjson::Value& v, std::string field,
+                                 std::string default_value)
 {
     const char* f = field.c_str();
 
@@ -13,7 +13,7 @@ string rapidjson_get_string(const rapidjson::Value& v, string field,
     }
 }
 
-int rapidjson_get_int(const rapidjson::Value& v, string field,
+int rapidjson_get_int(const rapidjson::Value& v, std::string field,
                       int default_value)
 {
     const char* f = field.c_str();
@@ -26,7 +26,7 @@ int rapidjson_get_int(const rapidjson::Value& v, string field,
     }
 }
 
-bool rapidjson_get_bool(const rapidjson::Value& v, string field,
+bool rapidjson_get_bool(const rapidjson::Value& v, std::string field,
                         bool default_value)
 {
     const char* f = field.c_str();
@@ -39,7 +39,7 @@ bool rapidjson_get_bool(const rapidjson::Value& v, string field,
     }
 }
 
-float rapidjson_get_float(const rapidjson::Value& v, string field,
+float rapidjson_get_float(const rapidjson::Value& v, std::string field,
                           float default_value)
 {
     const char* f = field.c_str();
@@ -52,7 +52,7 @@ float rapidjson_get_float(const rapidjson::Value& v, string field,
     }
 }
 
-BBOX rapidjson_get_bbox(const rapidjson::Value& v, string field,
+BBOX rapidjson_get_bbox(const rapidjson::Value& v, std::string field,
                         BBOX default_value)
 {
     const char* f = field.c_str();
@@ -81,7 +81,7 @@ BBOX rapidjson_get_bbox(const rapidjson::Value& v, string field,
     return ret;
 }
 
-POINT rapidjson_get_point(const rapidjson::Value& v, string field,
+POINT rapidjson_get_point(const rapidjson::Value& v, std::string field,
                           POINT default_value)
 {
     const char* f = field.c_str();
