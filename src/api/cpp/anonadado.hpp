@@ -1,6 +1,7 @@
 #ifndef __ANONADADO_API
 #define __ANONADADO_API
 
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -231,6 +232,7 @@ namespace anonadado {
                                         std::vector<int>& annotation_index);
             annotation* get_active_annotation(int index, int frame);
             void get_frame(int index, cv::Mat& dst);
+            int num_frames();
         
         private:
             void clear_annotations();

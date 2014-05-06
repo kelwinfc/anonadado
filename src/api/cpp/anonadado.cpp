@@ -714,3 +714,30 @@ void instance::get_frame(int index, cv::Mat& dst)
 
     dst = cv::imread(dir);
 }
+
+int instance::num_frames()
+{
+    std::string path, line;
+    std::stringstream ss, ss_frames;
+    int ret;
+    
+    ss << this->sequence_filename;
+
+    if ( this->sequence_filename[this->sequence_filename.size() - 1] != '/' ){
+        ss << "/";
+    }
+
+    ss << "anonadado.data";
+
+    getline(ss, path);
+
+    std::ifstream fin(path.c_str());
+
+    getline(fin, line);
+    getline(fin, line);
+    
+    ss_frames << line;
+    ss_frames >> ret;
+    
+    return ret;
+}
