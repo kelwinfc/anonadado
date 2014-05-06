@@ -680,7 +680,7 @@ annotation* instance::get_active_annotation(int index, int frame)
     if (0 <= index && index < (int)this->annotations.size()){
         
         std::vector<annotation*>::iterator it, end;
-
+        
         it = this->annotations[index].begin();
         end = this->annotations[index].end();
         
@@ -740,4 +740,21 @@ int instance::num_frames()
     ss_frames >> ret;
     
     return ret;
+}
+
+void instance::get_annotations(std::string name, std::vector<int>& out)
+{
+    std::vector<std::vector<annotation*> >::iterator it, end;
+    int index = 0;
+    
+    it = this->annotations.begin();
+    end = this->annotations.end();
+    out.clear();
+    
+    for ( ; it != end; ++it ){
+        if ( it->size() > 0 && (*it)[0]->get_name() == name ){
+            out.push_back(index);
+        }
+        index++;
+    }
 }

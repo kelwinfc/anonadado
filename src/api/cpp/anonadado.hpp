@@ -233,6 +233,7 @@ namespace anonadado {
             annotation* get_active_annotation(int index, int frame);
             void get_frame(int index, cv::Mat& dst);
             int num_frames();
+            void get_annotations(std::string name, std::vector<int>& out);
         
         private:
             void clear_annotations();
