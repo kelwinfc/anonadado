@@ -1,5 +1,5 @@
 {
-    "domain" : "test/domain.json",
+    "domain" : "/home/kelwinfc/Escritorio/anonadado/test/domain.json",
     "name": "dummy",
     "video_filename": "test/0.mpg",
     "sequence_filename": "test/0",
