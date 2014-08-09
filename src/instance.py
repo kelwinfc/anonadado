@@ -534,6 +534,7 @@ class InstancePanel(scrolled.ScrolledPanel):
         
     def load_sequence(self):
         try:
+            print self.sequence_dir + "/anonadado.data"
             lines = open(self.sequence_dir + "/anonadado.data").readlines()
             vpath = lines[0]
             self.video_dir = vpath
@@ -772,11 +773,20 @@ class InstancePanel(scrolled.ScrolledPanel):
     def OnKeyPress(self, event):
 
         keycode = event.GetKeyCode()
-
-        if event.GetKeyCode() == wx.WXK_LEFT:
+        
+        if keycode == wx.WXK_LEFT:
             self.OnGoToPrevious(self)
-        if event.GetKeyCode() == wx.WXK_RIGHT:
+        if keycode == wx.WXK_RIGHT:
             self.OnGoToNext(self)
+        if ord('0') <= event.GetUniChar() and event.GetUniChar() <= ord('9'):
+            self.speed = event.GetUniChar() - ord('0')
+            if self.speed == 0:
+                self.speed = 10
+            
+            self.speedInput.SetValue(str(self.speed))
+            self.speedInput.Layout()
+            
+            event.Skip()
         else:
             event.Skip()
 
@@ -793,7 +803,7 @@ class InstancePanel(scrolled.ScrolledPanel):
     def load_instance(self):
         if self.top_app.am is None:
             return
-
+        
         self.sequence_dir = self.top_app.am.sequence_filename
         self.video_dir = self.top_app.am.video_filename
 
