@@ -9,6 +9,7 @@ import wx.lib.intctrl as intctrl
 
 from utils import *
 
+
 class FeatureWidget(wx.Panel):
     def __init__(self, parent, an, annotation, feature, id):
         wx.Panel.__init__(self, parent, id)
