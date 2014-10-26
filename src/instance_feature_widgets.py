@@ -363,9 +363,9 @@ class InstanceBoundingBoxFeatureWidget(InstanceDefaultValueFeatureWidget):
         if not self.feature.is_active:
             for f in self.annotation.features:
                 f.is_active = False
-        
+
         self.feature.is_active = not self.feature.is_active
-        
+
         self.top_app.instanceTab.go_to_frame()
 
 

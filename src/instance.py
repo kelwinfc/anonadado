@@ -382,7 +382,7 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.increaseSpeedButton = wx.BitmapButton(self, id=wx.ID_ANY,
               bitmap=wx.Bitmap(cwd() + '/media/next.png'), style=wx.NO_BORDER,
                            pos=(10, 10))
-        
+
         self.load_instance()
 
     def scale_image(self):
@@ -396,7 +396,7 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.saveInstanceButton.SetToolTip(wx.ToolTip("Save the instance"))
 
         self.speedInput.SetToolTip(wx.ToolTip("Speed"))
-        
+
         self.videoFilenameButton.SetToolTip(
             wx.ToolTip("Load Video to be processed"))
         self.sequenceButton.SetToolTip(
@@ -440,7 +440,7 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.reduceSpeedButton.Bind(wx.EVT_BUTTON, self.OnReduceSpeed)
         self.increaseSpeedButton.Bind(wx.EVT_BUTTON, self.OnIncreaseSpeed)
         self.speedInput.Bind(wx.EVT_TEXT, self.OnSpeedChanged)
-        
+
         for x in vars(self):
             try:
                 if str(type(getattr(self, x))) != \
@@ -465,7 +465,7 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.instanceNameSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.subCommandSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.speedSizer = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         seq = [
                 # Skeleton
                 (self.sizer, self.left_sizer),
@@ -478,7 +478,7 @@ class InstancePanel(scrolled.ScrolledPanel):
                 (self.left_sizer, self.subCommandSizer, wx.ALIGN_CENTER),
                 (self.left_sizer, self.annotationsSizer),
                 (self.left_sizer, self.speedSizer),
-                
+
                 # Instance Name
                 (self.instanceNameSizer, self.instanceNameLabel),
                 (self.instanceNameSizer, self.instanceNameInput),
@@ -508,13 +508,13 @@ class InstancePanel(scrolled.ScrolledPanel):
                 # Annotations
                 (self.annotationsSizer, self.annotationsLabel),
                 (self.annotationsSizer, self.annotationsChoice),
-                
+
                 # Speed
                 (self.speedSizer, self.speedLabel),
                 (self.speedSizer, self.reduceSpeedButton),
                 (self.speedSizer, self.speedInput),
                 (self.speedSizer, self.increaseSpeedButton)
-        
+
               ]
 
         for n in seq:
@@ -531,7 +531,7 @@ class InstancePanel(scrolled.ScrolledPanel):
 
         self.imageControl.Bind(wx.EVT_LEFT_DOWN, self.OnMousePress)
         self.imageControl.Bind(wx.EVT_RIGHT_DOWN, self.OnMouseRelease)
-        
+
     def load_sequence(self):
         try:
             print self.sequence_dir + "/anonadado.data"
@@ -543,10 +543,10 @@ class InstancePanel(scrolled.ScrolledPanel):
             self.videoFilenameLabel.SetToolTip(wx.ToolTip(vpath))
             self.sequenceLabel.SetLabel("Sequence: " + self.sequence_dir)
             self.sequenceLabel.SetToolTip(wx.ToolTip(self.sequence_dir))
-            
+
             if self.current_frame is None:
                 self.current_frame = 0
-            
+
             self.tracker.SetMax(self.num_of_frames)
             self.top_app.am.sequence_filename = self.sequence_dir
             self.top_app.am.video_filename = self.video_dir
@@ -559,21 +559,21 @@ class InstancePanel(scrolled.ScrolledPanel):
     def go_to_frame(self):
         if self.num_of_frames == 0 or self.sequence_dir is None:
             return
-        
+
         self.tracker.SetValue(self.current_frame)
         self.image = wx.Bitmap(self.sequence_dir + "/" + \
                                str(self.current_frame) + ".jpg")
-        
+
         self.scale_image()
         self.imageControl.SetBitmap(self.image)
         self.timeline.OnPaint()
         self.Draw()
-    
+
     def get_annotation_point(self, annotation):
         frames = [x.frame for x in annotation]
         min_dist = self.num_of_frames * 2
         index = 0
-        
+
         for idx, x in enumerate(frames):
             next_dist = abs(x - self.current_frame)
             if next_dist < min_dist and x <= self.current_frame:
@@ -583,26 +583,26 @@ class InstancePanel(scrolled.ScrolledPanel):
 
     def select_annotation(self, annotation, change_selection=True):
         index = self.get_annotation_point(annotation)
-        
+
         if change_selection:
             self.annotationsChoice.SetSelection(
                     self.top_app.am.get_annotation_index(annotation[index]))
-        
+
         if self.annotationWidget is not None:
             self.annotationWidget.Hide()
             self.annotationWidget = None
-        
+
         self.annotationWidget = InstanceAnnotationWidget(self, self.top_app,
                                                          annotation[index])
         self.right_sizer.Add(self.annotationWidget, 0, wx.ALIGN_LEFT, 5)
-        
+
         self.Layout()
-        
+
         self.SetupScrolling()
-        
+
         self.current_frame = annotation[index].frame
         self.go_to_frame()
-    
+
     def onGoToPreviousAnnotation(self, event):
         last = None
         new_frame = self.current_frame
@@ -654,7 +654,7 @@ class InstancePanel(scrolled.ScrolledPanel):
     def OnAddAnnotation(self, event):
         if self.num_of_frames == 0:
             return
-        
+
         annotation_label = self.addAnnotationList.GetStringSelection()
         annotation = self.top_app.am.domain[annotation_label].get_instance()
         annotation.frame = self.current_frame
@@ -726,13 +726,6 @@ class InstancePanel(scrolled.ScrolledPanel):
             keepGoing = True
             skip = False
 
-            # This file helps to recover the video that generated the sequence
-            instance_description = open(dst_path + "/anonadado.data", "w")
-            instance_description.writelines(
-                [path + "\n", str(int(cap.get(cv.CV_CAP_PROP_FRAME_COUNT)))]
-            )
-            instance_description.close()
-
             # Retrieve each frame and save them in order to be able to have
             # random access to any frame of the video
             index = 0
@@ -742,18 +735,27 @@ class InstancePanel(scrolled.ScrolledPanel):
                 ret, frame = cap.read()
                 if not ret:
                     break
+
                 cv2.imshow("img", frame)
                 cv2.waitKey(10)
-                
+
                 filename = dst_path + "/" + str(index) + ".jpg"
-                
+
                 if not os.path.isfile(filename):
                     cv2.imwrite(filename, frame)
-                    index += 1
+                index += 1
                 (keepGoing, skip) = progress_dlg.Update(counter)
+
+            # This file helps to recover the video that generated the sequence
+            instance_description = open(dst_path + "/anonadado.data", "w")
+            instance_description.writelines(
+                [path + "\n", str(index - 1)]
+            )
+            instance_description.close()
 
             cap.release()
             progress_dlg.Destroy()
+            cv2.destroyWindow("img")
 
             self.video_dir = path
             self.sequence_dir = dst_path
@@ -762,30 +764,32 @@ class InstancePanel(scrolled.ScrolledPanel):
         dlg.Destroy()
 
     def OnGoToPrevious(self, event):
-        self.current_frame = max(0, self.current_frame - self.speed)
+        self.current_frame = max(0, self.current_frame - (self.speed - 1))
         self.go_to_frame()
 
     def OnGoToNext(self, event):
         self.current_frame = min(self.num_of_frames,
-                                 self.current_frame + self.speed)
+                                 self.current_frame + (self.speed - 1))
         self.go_to_frame()
 
     def OnKeyPress(self, event):
 
         keycode = event.GetKeyCode()
-        
+
         if keycode == wx.WXK_LEFT:
+            print "left"
             self.OnGoToPrevious(self)
         if keycode == wx.WXK_RIGHT:
+            print "right"
             self.OnGoToNext(self)
         if ord('0') <= event.GetUniChar() and event.GetUniChar() <= ord('9'):
             self.speed = event.GetUniChar() - ord('0')
             if self.speed == 0:
                 self.speed = 10
-            
+
             self.speedInput.SetValue(str(self.speed))
             self.speedInput.Layout()
-            
+
             event.Skip()
         else:
             event.Skip()
@@ -803,7 +807,7 @@ class InstancePanel(scrolled.ScrolledPanel):
     def load_instance(self):
         if self.top_app.am is None:
             return
-        
+
         self.sequence_dir = self.top_app.am.sequence_filename
         self.video_dir = self.top_app.am.video_filename
 
@@ -846,11 +850,11 @@ class InstancePanel(scrolled.ScrolledPanel):
 
             if f.get_type() == "bbox" or f.get_type() == "vector":
                 if f.value == None:
-                    f.value = [ [x for x in y] for y in f.default ]
-                
+                    f.value = [[x for x in y] for y in f.default]
+
                 f.value[0][0] = e.GetX()
                 f.value[0][1] = e.GetY()
-            
+
             elif f.get_type() == "point":
                 if f.value == None:
                     f.value = copy.copy(f.default)
@@ -868,15 +872,15 @@ class InstancePanel(scrolled.ScrolledPanel):
         poi = self.get_annotation_point(annotation)
 
         annotation = self.top_app.am.sequence[index][poi]
-        
+
         for f in annotation.features:
             if not f.is_active:
                 continue
 
             if f.get_type() == "bbox" or f.get_type() == "vector":
                 if f.value == None:
-                    f.value = [ [x for x in y] for y in f.default ]
-                
+                    f.value = [[x for x in y] for y in f.default]
+
                 f.value[1][0] = e.GetX()
                 f.value[1][1] = e.GetY()
 
@@ -887,7 +891,7 @@ class InstancePanel(scrolled.ScrolledPanel):
                 f.value[0] = e.GetX()
                 f.value[1] = e.GetY()
             break
-        
+
         self.go_to_frame()
 
     def Draw(self, e=None):
@@ -900,10 +904,9 @@ class InstancePanel(scrolled.ScrolledPanel):
 
         bit = wx.EmptyBitmap(517, 524)
         dc = wx.MemoryDC(self.image)
-        
-        
+
         index = self.annotationsChoice.GetSelection()
-        
+
         if index >= 0 and len(self.top_app.am.sequence[index]) > 0:
             annotation = self.top_app.am.get_annotation(index)
             poi = self.get_annotation_point(annotation)
@@ -941,21 +944,21 @@ class InstancePanel(scrolled.ScrolledPanel):
 
             dc.SelectObject(wx.NullBitmap)
         self.imageControl.SetBitmap(self.image)
-    
+
     def OnIncreaseSpeed(self, e=None):
         self.speed += 1
         self.speedInput.SetValue(str(self.speed))
         self.speedInput.Layout()
-    
+
     def OnReduceSpeed(self, e=None):
         self.speed -= 1
-        
+
         if self.speed < 1:
             self.speed = 1
-        
+
         self.speedInput.SetValue(str(self.speed))
         self.speedInput.Layout()
-    
+
     def OnSpeedChanged(self, e=None):
         new_value = self.speedInput.GetValue()
         aux_value = ""
@@ -964,7 +967,7 @@ class InstancePanel(scrolled.ScrolledPanel):
                 aux_value += ch
         if len(aux_value) == 0:
             aux_value = "1"
-        
+
         if str(self.speed) != aux_value or new_value != aux_value:
             self.speed = int(aux_value)
             self.speedInput.SetValue(str(self.speed))
