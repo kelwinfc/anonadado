@@ -297,7 +297,7 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.cols = 400
 
         ## Video: Current image
-        self.image = wx.Bitmap("test/0.jpg")
+        self.image = wx.Bitmap(os.path.join("test","0.jpg"))
         (self.rows, self.cols) = self.image.GetSize()
         factor = 600.0 / self.rows
         self.rows *= factor
@@ -534,8 +534,9 @@ class InstancePanel(scrolled.ScrolledPanel):
 
     def load_sequence(self):
         try:
-            print self.sequence_dir + "/anonadado.data"
-            lines = open(self.sequence_dir + "/anonadado.data").readlines()
+            print os.path.join(self.sequence_dir, "anonadado.data")
+            lines = open(os.path.join(self.sequence_dir,
+                                      "anonadado.data")).readlines()
             vpath = lines[0]
             self.video_dir = vpath
             self.num_of_frames = int(lines[1])
@@ -561,8 +562,8 @@ class InstancePanel(scrolled.ScrolledPanel):
             return
 
         self.tracker.SetValue(self.current_frame)
-        self.image = wx.Bitmap(self.sequence_dir + "/" + \
-                               str(self.current_frame) + ".jpg")
+        self.image = wx.Bitmap(os.path.join(self.sequence_dir,\
+                                            str(self.current_frame) + ".jpg"))
 
         self.scale_image()
         self.imageControl.SetBitmap(self.image)
@@ -739,7 +740,7 @@ class InstancePanel(scrolled.ScrolledPanel):
                 cv2.imshow("img", frame)
                 cv2.waitKey(10)
 
-                filename = dst_path + "/" + str(index) + ".jpg"
+                filename = os.path.join(dst_path, str(index) + ".jpg")
 
                 if not os.path.isfile(filename):
                     cv2.imwrite(filename, frame)
@@ -747,7 +748,8 @@ class InstancePanel(scrolled.ScrolledPanel):
                 (keepGoing, skip) = progress_dlg.Update(counter)
 
             # This file helps to recover the video that generated the sequence
-            instance_description = open(dst_path + "/anonadado.data", "w")
+            instance_description = open(os.path.join(dst_path,
+                                                     "anonadado.data"), "w")
             instance_description.writelines(
                 [path + "\n", str(index - 1)]
             )
@@ -898,8 +900,8 @@ class InstancePanel(scrolled.ScrolledPanel):
         if self.top_app is None or self.top_app.am is None:
             return
 
-        self.image = wx.Bitmap(self.sequence_dir + "/" + \
-                              str(self.current_frame) + ".jpg")
+        self.image = wx.Bitmap(os.path.join(self.sequence_dir,\
+                                            str(self.current_frame) + ".jpg"))
         self.scale_image()
 
         bit = wx.EmptyBitmap(517, 524)
