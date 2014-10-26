@@ -7,6 +7,8 @@ from annotations import *
 import wx
 import wx.lib.intctrl as intctrl
 
+from utils import *
+
 
 class InstanceFeatureWidget(wx.Panel):
     def __init__(self, parent, an, annotation, feature, id):
@@ -124,9 +126,9 @@ class InstanceDefaultValueFeatureWidget(InstanceFeatureWidget):
 
     def changeValidator(self, value):
         if value:
-            self.validValue.SetBitmap(wx.Bitmap(cwd() + '/media/ok.png'))
+            self.validValue.SetBitmap(wx.Bitmap(media("ok")))
         else:
-            self.validValue.SetBitmap(wx.Bitmap(cwd() + '/media/remove.png'))
+            self.validValue.SetBitmap(wx.Bitmap(media("remove")))
 
     def is_valid(self):
         self.changeValidator(True)

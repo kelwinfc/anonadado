@@ -56,7 +56,7 @@ class AnnotationWidget(scrolled.ScrolledPanel):
         # Add new feature form
         self.addFeatureButton = \
             wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
-                            bitmap=wx.Bitmap(cwd() + '/media/add.png'))
+                            bitmap=wx.Bitmap(media("add")))
         self.addFeatureLabel = wx.StaticText(self, label="New Feature:")
         self.addFeatureInput = wx.TextCtrl(self, value="",
                                          style=wx.TE_PROCESS_ENTER)
@@ -64,7 +64,7 @@ class AnnotationWidget(scrolled.ScrolledPanel):
                                         choices=widget_by_name.keys())
         self.removeButton = \
             wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
-                            bitmap=wx.Bitmap(cwd() + '/media/remove.png'),
+                            bitmap=wx.Bitmap(media("remove")),
                             pos=(10, 10))
         # Features
         self.features = []
@@ -191,7 +191,7 @@ class DomainPanel(wx.Panel):
         # Add Label Form
         self.addLabelButton = \
             wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
-                            bitmap=wx.Bitmap(cwd() + '/media/add.png'))
+                            bitmap=wx.Bitmap(media("add")))
         self.addLabelLabel = wx.StaticText(self, label="Label:")
         self.addLabelInput = wx.TextCtrl(self, value="",
                                          style=wx.TE_PROCESS_ENTER)
@@ -206,13 +206,13 @@ class DomainPanel(wx.Panel):
 
         # Global commands (Load, Save, New, ...)
         self.newDomainButton = wx.BitmapButton(self, id=wx.ID_ANY,
-          bitmap=wx.Bitmap(cwd() + '/media/new.png'), style=wx.NO_BORDER,
+          bitmap=wx.Bitmap(media("new")), style=wx.NO_BORDER,
                            pos=(10, 10))
         self.openDomainButton = wx.BitmapButton(self, id=wx.ID_ANY,
-          bitmap=wx.Bitmap(cwd() + '/media/open.png'), style=wx.NO_BORDER,
+          bitmap=wx.Bitmap(media("open")), style=wx.NO_BORDER,
                            pos=(10, 10))
         self.saveDomainButton = wx.BitmapButton(self, id=wx.ID_ANY,
-          bitmap=wx.Bitmap(cwd() + '/media/save.png'), style=wx.NO_BORDER,
+          bitmap=wx.Bitmap(media("save")), style=wx.NO_BORDER,
                            pos=(10, 10))
 
         self.annotationWidget = None

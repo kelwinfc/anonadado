@@ -46,16 +46,16 @@ class InstanceAnnotationWidget(wx.Panel):
         self.name.SetFont(font)
 
         self.addInterestPointButton = wx.BitmapButton(self, id=wx.ID_ANY,
-                bitmap=wx.Bitmap(cwd() + "/media/pin_add.png"),
+                bitmap=wx.Bitmap(media("pin_add")),
                                  style=wx.NO_BORDER, pos=(10, 10))
         self.rmInterestPointButton = wx.BitmapButton(self, id=wx.ID_ANY,
-                bitmap=wx.Bitmap(cwd() + "/media/pin_rm.png"),
+                bitmap=wx.Bitmap(media("pin_rm")),
                                  style=wx.NO_BORDER, pos=(10, 10))
         self.prevInterestPointButton = wx.BitmapButton(self, id=wx.ID_ANY,
-                bitmap=wx.Bitmap(cwd() + "/media/pin_prev.png"),
+                bitmap=wx.Bitmap(media("pin_prev")),
                                  style=wx.NO_BORDER, pos=(10, 10))
         self.nextInterestPointButton = wx.BitmapButton(self, id=wx.ID_ANY,
-                bitmap=wx.Bitmap(cwd() + "/media/pin_next.png"),
+                bitmap=wx.Bitmap(media("pin_next")),
                                  style=wx.NO_BORDER, pos=(10, 10))
 
         self.features = []
@@ -318,7 +318,7 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.videoFilenameLabel = wx.StaticText(self, label="Video:")
         self.videoFilenameButton = \
             wx.BitmapButton(self, id=wx.ID_ANY,
-                            bitmap=wx.Bitmap(cwd() + '/media/video.png'),
+                            bitmap=wx.Bitmap(media("video")),
                                              style=wx.NO_BORDER,
                                              pos=(10, 10))
         self.num_of_frames = 0
@@ -327,7 +327,7 @@ class InstancePanel(scrolled.ScrolledPanel):
         self.sequenceLabel = wx.StaticText(self, label="Sequence:")
         self.sequenceButton = \
             wx.BitmapButton(self, id=wx.ID_ANY,
-                            bitmap=wx.Bitmap(cwd() + '/media/sequence.png'),
+                            bitmap=wx.Bitmap(media("sequence")),
                                              style=wx.NO_BORDER,
                                              pos=(10, 10))
         self.video_dir = None
@@ -349,23 +349,23 @@ class InstancePanel(scrolled.ScrolledPanel):
 
         # Global commands (Load, Save, New, ...)
         self.newInstanceButton = wx.BitmapButton(self, id=wx.ID_ANY,
-          bitmap=wx.Bitmap(cwd() + '/media/new.png'), style=wx.NO_BORDER,
+          bitmap=wx.Bitmap(media("new")), style=wx.NO_BORDER,
                            pos=(10, 10))
         self.openInstanceButton = wx.BitmapButton(self, id=wx.ID_ANY,
-          bitmap=wx.Bitmap(cwd() + '/media/open.png'), style=wx.NO_BORDER,
+          bitmap=wx.Bitmap(media("open")), style=wx.NO_BORDER,
                            pos=(10, 10))
         self.saveInstanceButton = wx.BitmapButton(self, id=wx.ID_ANY,
-          bitmap=wx.Bitmap(cwd() + '/media/save.png'), style=wx.NO_BORDER,
+          bitmap=wx.Bitmap(media("save")), style=wx.NO_BORDER,
                            pos=(10, 10))
 
         self.goToPreviousButton = wx.BitmapButton(self, id=wx.ID_ANY,
-          bitmap=wx.Bitmap(cwd() + '/media/previous.png'), style=wx.NO_BORDER,
+          bitmap=wx.Bitmap(media("previous")), style=wx.NO_BORDER,
                            pos=(10, 10))
         self.goToNextButton = wx.BitmapButton(self, id=wx.ID_ANY,
-          bitmap=wx.Bitmap(cwd() + '/media/next.png'), style=wx.NO_BORDER,
+          bitmap=wx.Bitmap(media("next")), style=wx.NO_BORDER,
                            pos=(10, 10))
         self.rmAnnotation = wx.BitmapButton(self, id=wx.ID_ANY,
-          bitmap=wx.Bitmap(cwd() + '/media/remove.png'), style=wx.NO_BORDER,
+          bitmap=wx.Bitmap(media("remove")), style=wx.NO_BORDER,
                            pos=(10, 10))
 
         # Annotation
@@ -375,12 +375,12 @@ class InstancePanel(scrolled.ScrolledPanel):
         # Speed
         self.speedLabel = wx.StaticText(self, wx.ID_ANY, "Speed:")
         self.reduceSpeedButton = wx.BitmapButton(self, id=wx.ID_ANY,
-          bitmap=wx.Bitmap(cwd() + '/media/previous.png'),
+          bitmap=wx.Bitmap(media("previous")),
                            style=wx.NO_BORDER, pos=(10, 10))
         self.speedInput = wx.TextCtrl(self, value="1", size=(40, -1),
                                       style=wx.TE_CENTRE)
         self.increaseSpeedButton = wx.BitmapButton(self, id=wx.ID_ANY,
-              bitmap=wx.Bitmap(cwd() + '/media/next.png'), style=wx.NO_BORDER,
+              bitmap=wx.Bitmap(media("next")), style=wx.NO_BORDER,
                            pos=(10, 10))
 
         self.load_instance()

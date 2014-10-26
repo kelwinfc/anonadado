@@ -7,6 +7,7 @@ from annotations import *
 import wx
 import wx.lib.intctrl as intctrl
 
+from utils import *
 
 class FeatureWidget(wx.Panel):
     def __init__(self, parent, an, annotation, feature, id):
@@ -41,13 +42,13 @@ class FeatureWidget(wx.Panel):
 
         self.removeButton = \
             wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
-                            bitmap=wx.Bitmap(cwd() + '/media/remove.png'),
+                            bitmap=wx.Bitmap(media("remove")),
                             pos=(10, 10))
 
         if len(self.annotation.features) > 0 and self.get_feature_index() > 0:
             self.moveUpButton = \
                 wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
-                                bitmap=wx.Bitmap(cwd() + '/media/up.png'),
+                                bitmap=wx.Bitmap(media("up")),
                                 pos=(10, 10))
         else:
             self.moveUpButton = \
@@ -58,7 +59,7 @@ class FeatureWidget(wx.Panel):
                 self.get_feature_index() + 1 < len(self.annotation.features):
             self.moveDownButton = \
                 wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
-                                bitmap=wx.Bitmap(cwd() + '/media/down.png'),
+                                bitmap=wx.Bitmap(media("down")),
                                 pos=(10, 10))
         else:
             self.moveDownButton = \
@@ -184,9 +185,9 @@ class DefaultValueFeatureWidget(FeatureWidget):
 
     def changeValidator(self, value):
         if value:
-            self.validValue.SetBitmap(wx.Bitmap(cwd() + '/media/ok.png'))
+            self.validValue.SetBitmap(wx.Bitmap(media("ok")))
         else:
-            self.validValue.SetBitmap(wx.Bitmap(cwd() + '/media/remove.png'))
+            self.validValue.SetBitmap(wx.Bitmap(media("remove")))
 
     def is_valid(self):
         self.changeValidator(True)
@@ -321,7 +322,7 @@ class ChoiceFeatureWidget(DefaultValueFeatureWidget):
 
         self.addChoiceButton = \
             wx.BitmapButton(self, id=wx.ID_ANY, style=wx.NO_BORDER,
-                            bitmap=wx.Bitmap(cwd() + '/media/add.png'))
+                            bitmap=wx.Bitmap(media("add")))
         self.addChoiceLabel = wx.StaticText(self, label="New value:")
         self.addChoiceInput = wx.TextCtrl(self, value="",
                                          style=wx.TE_PROCESS_ENTER)
